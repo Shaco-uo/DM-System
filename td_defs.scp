@@ -1,0 +1,57 @@
+[DEFNAME team_dm]
+dm_team_color_1		07a0 // 04
+dm_team_color_2		079c // 025
+dm_list_duration	1800 // 30 min
+dm_wait_time		10	 // after start match button pressed
+dm_fight_time		480  // 8 min fight max duration. will add dm_extra_time after
+dm_queue_time		60  // will add to mem timers and place queued 1st
+dm_countdown		10	// arrived at arena, walls blocking
+dm_extra_time		30	// time to finish/abot battle
+
+dm_arena_p1			5272,1776,0,0	// S corner
+dm_arena_p2			5247,1751,0,0	// N corner
+dm_arena_center		5261,1764,0,0
+dm_mount_zone		5249,1800,0,0	// Black Area, mounts will wait here
+
+dm_add_equipment	1
+dm_add_mount		1
+dm_mount_id			c_llama
+
+dm_equip_item_total	8
+dm_equip_item_1		i_platemail_leggings,0455 // baseid,color
+dm_equip_item_2		i_platemail_chest,0455
+dm_equip_item_3		i_platemail_helm,0455
+dm_equip_item_4		i_platemail_gloves,0455
+dm_equip_item_5		i_platemail_arms,0455
+dm_equip_item_6		i_platemail_gorget,0455
+dm_equip_item_7		i_shield_round_metal,0
+dm_equip_item_8		i_robe,0
+
+dm_pack_item_total	7
+dm_pack_item_1		cw_fuego,1,20,20 // baseid,amt,contp_x,contp_y
+dm_pack_item_2		cw_reagents,1,80,20
+dm_pack_item_3		i_spellbook_cw,1,20,100
+dm_pack_item_4		i_bandage,50,60,100
+dm_pack_item_5		i_potion_restore_great,10,20,160
+dm_pack_item_6		i_potion_manatotal,10,60,160
+dm_pack_item_7		i_arrow,100,100,160
+
+// dm_cooldown			30	//s after team_dm
+// dm_spectator_cd		60	//s after leaving spectator mode
+
+empty_cliloc		1065706 // ~1_NOTHING~
+empty_cliloc2		1070722 // ~1_NOTHING~
+dm_tooltips			1		// 0 disables
+dm_smsg_color 		60 // sysmessage "chat" default color
+dm_msg_color		43 // overhead system messages
+dm_chatmsg_color	70
+dm_winmsg_color		55
+dm_dlg_bg			9200 // 9400
+bfont_dm_title		<basefont color="#ffa500">  // orange
+bfont_dm_text1		<basefont color="#ffffff">  // white
+bfont_dm_text2		<basefont color="#ffff99">  // light yellow
+bfont_dm_text3		<basefont color="#d3d3d3">  // lgray
+bfont_dm_red		<basefont color="#ff3333">  // light red
+bfont_dm_gray		<basefont color="#808080">  // gray
+
+[EOF]
