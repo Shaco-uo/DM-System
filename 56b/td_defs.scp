@@ -41,7 +41,7 @@ dm_pack_item_7		i_arrow,100,100,160
 
 empty_cliloc		1065706 // ~1_NOTHING~
 empty_cliloc2		1070722 // ~1_NOTHING~
-dm_tooltips			1		// 0 disables
+dm_tooltips			0		// 0 disables // broken
 dm_smsg_color 		60 // sysmessage "chat" default color
 dm_msg_color		43 // overhead system messages
 dm_chatmsg_color	70

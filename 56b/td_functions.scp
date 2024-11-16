@@ -25,7 +25,7 @@ endfor
 
 [FUNCTION f_dm_dlg_tooltip]
 if <def0.dm_tooltips>==1
-	tooltip <def.empty_cliloc>,@<args>
+	src.tooltip <def.empty_cliloc>,@<args>
 endif
 
 [FUNCTION f_dlg_teamdm_sidebar]
