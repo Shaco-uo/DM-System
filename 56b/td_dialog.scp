@@ -8,11 +8,9 @@ endif
 f_dlg_teamdm_sidebar
 f_dlg_deathmatch_<src.dctag0.deathmatch_page>
 
-[DIALOG d_deathmatch_main PREBUTTON]
-src.dialogclose d_deathmatch_main
-
 [DIALOG d_deathmatch_main BUTTON]
 ON=0
+	src.dialogclose d_deathmatch_main
 	if <src.dctag0.deathmatch_page>==2
 		src.ctag.deathmatch_opt=
 		src.ctag.deathmatch_page=1
@@ -22,6 +20,7 @@ ON=0
 	endif
 
 ON=1 10 // select list
+	src.dialogclose d_deathmatch_main
 	if <src.dctag0.deathmatch_page>==2
 		src.ctag.deathmatch_page=1
 		src.ctag.deathmatch_opt=
@@ -32,16 +31,19 @@ ON=1 10 // select list
 	sdialog d_deathmatch_main
 
 ON=101 // create list
+	src.dialogclose d_deathmatch_main
 	src.ctag.match_amt=
 	src.ctag.deathmatch_page=
 	src.ctag.match_private=
 	sdialog d_deathmatch_main
 
 ON=102 // avalaible match list
+	src.dialogclose d_deathmatch_main
 	src.ctag.deathmatch_page=1
 	sdialog d_deathmatch_main
 
 ON=103 // player amt+
+	src.dialogclose d_deathmatch_main
 	src.ctag0.match_amt ++
 	if <src.dctag0.match_amt> > 5
 		src.ctag.match_amt=1
@@ -49,6 +51,7 @@ ON=103 // player amt+
 	sdialog d_deathmatch_main
 
 ON=104 // private/public
+	src.dialogclose d_deathmatch_main
 	if <isempty <src.ctag.match_private>>
 		src.ctag.match_private=<R1000,9999>
 		src.sysmessage @<def0.dm_smsg_color>,,1 New match password set to <src.dctag0.match_private>.
@@ -65,6 +68,7 @@ ON=104 // private/public
 	sdialog d_deathmatch_main
 
 ON=105 // create list
+	src.dialogclose d_deathmatch_main
 	ref1=<serv.list.deathmatch_global.0>
 	local.count=<eval <serv.list.deathmatch_global.count>-1>
 	if <src.findid.i_mem_deathmatch>
@@ -85,6 +89,7 @@ ON=105 // create list
 	sdialog d_deathmatch_main
 
 ON=106 // delete list
+	src.dialogclose d_deathmatch_main
 	local.list=<src.findid.i_mem_deathmatch.dtag0.list>
 	serv.f_deathmatch_remove_list <dlocal.list>
 	serv.f_dm_check_queue <dlocal.list>
@@ -93,6 +98,7 @@ ON=106 // delete list
 	src.timerf 0,dialog d_deathmatch_main
 
 ON=107 // join list
+	src.dialogclose d_deathmatch_main
 	ref1=<serv.list.deathmatch_global.0>
 	args=<serv.list.deathmatch_global.<src.dctag0.deathmatch_opt>>
 	ref2=<argv[0]> // player 1
@@ -110,18 +116,21 @@ ON=107 // join list
 	sdialog d_deathmatch_main
 
 ON=108 // leave list
+	src.dialogclose d_deathmatch_main
 	ref1=<src.findid.i_mem_deathmatch>
 	serv.f_deathmatch_remove_player <src>,<ref1.dtag0.list>
 	src.sysmessage @<def.fail>,,1 You leave the match list.
 	sdialog d_deathmatch_main
 
 ON=109 // start match
+	src.dialogclose d_deathmatch_main
 	ref1=<serv.list.deathmatch_global.0>
 	if <ref1.dtag0.mode>==0
 		serv.f_deathmatch_prestart <src.dctag0.deathmatch_opt>
 		src.ctag.deathmatch_opt=
 	endif
 ON=110 // add to queue
+	src.dialogclose d_deathmatch_main
 	ref1=<serv.list.deathmatch_global.0>
 	if <ref1.dtag0.mode> >= 1
 		ref2=<strarg <serv.list.deathmatch_global.<src.dctag0.deathmatch_opt>>>
@@ -132,6 +141,7 @@ ON=110 // add to queue
 	endif
 
 ON=111 // join private list
+	src.dialogclose d_deathmatch_main
 	ref1=<serv.list.deathmatch_global.0>
 	args=<serv.list.deathmatch_global.<src.dctag0.deathmatch_opt>>
 	ref2=<argv[0]> // player 1
@@ -154,6 +164,7 @@ ON=111 // join private list
 	sdialog d_deathmatch_main
 
 ON=203 220 // reorder teams
+	src.dialogclose d_deathmatch_main
 	local.pos=<eval <argn1>-201>
 	ref2=<strarg <serv.list.deathmatch_global.<src.dctag0.deathmatch_opt>>>
 	ref3=<serv.list.deathmatch_<ref2>.<dlocal.pos>> // selected player
