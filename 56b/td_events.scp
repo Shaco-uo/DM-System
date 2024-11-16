@@ -1,0 +1,97 @@
+[EVENTS e_deathmatch_create]
+ON=@Logout
+	if <src.findid.i_mem_deathmatch>
+		ref1=<src.findid.i_mem_deathmatch>
+		serv.f_dm_sysmessage <ref1.dtag0.list>,<def.fail>,<src.name> was removed from the match list (logout).
+		serv.f_deathmatch_remove_player <src>,<ref1.dtag0.list>
+	endif
+
+[EVENTS e_deathmatch_fight]
+ON=@Logout
+	if <src.findid.i_mem_deathmatch>
+		ref1=<src.findid.i_mem_deathmatch>
+		serv.f_dm_sysmessage <ref1.dtag0.list>,<def.fail>,<src.name> was removed from the match (logout).
+		trigger @Death
+	endif
+ON=@Death
+	if <src.findid.i_mem_deathmatch>
+		ref1=<src.findid.i_mem_deathmatch>
+		local.team=<ref1.dtag0.team>
+		ref2=<serv.list.deathmatch_global.0> // stone
+		src.events=-e_deathmatch_fight
+		if <src.findid.25>
+			src.findid.25.remove
+		endif
+		ref2.tag0.team_<dlocal.team> --
+		if <ref2.tag0.team_<dlocal.team>>==0
+			serv.f_dm_win <qval <dlocal.team>==1?2:1>,<ref1.dtag0.list>
+		endif
+		src.restore_me
+		src.go <ref1.tag0.old_p>
+		if !<isempty <ref1.tag.mount>>
+			ref3=<ref1.tag.mount>
+			ref3.go=<src.p>
+			src.mount <ref3>
+		endif
+		ref1.tag.old_p=
+		return 1
+	endif
+
+[EVENTS e_dm_mount_store]
+ON=@Dismount
+	if <src.findid.i_mem_deathmatch>
+		ref1=<src.findid.i_mem_deathmatch>
+		ref2=<argo>
+		ref2.go=<def.dm_mount_zone>
+		ref1.tag.mount=<ref2>
+		src.events=-e_dm_mount_store
+	endif
+
+[TYPEDEF t_dm_item]
+ON=@Dclick
+	if !<src.isevent.e_deathmatch_fight>
+		destroy 1
+		return 1
+	endif
+ON=@Equiptest
+	if !<src.isevent.e_deathmatch_fight>
+		destroy 1
+		return 1
+	endif
+ON=@DropOn_Trade
+	return 1
+ON=@Dropon_Char
+	return 1
+ON=@Dropon_Item
+	if <argo.topobj>!=<src>
+		return 1
+	endif
+ON=@Dropon_Ground
+	destroy 1
+
+[TYPEDEF t_dm_weapon]
+// add tooltip
+ON=@Equip
+	if <isweapon> && <isempty <tag.skill>>
+		tag.skill=<serv.skill.<skill>.key>
+		tag.skill2=Tactics
+	endif
+	if <src.<tag0.skill>> < 100.0
+		tag.old_skill=<src.<tag0.skill>>
+		src.<tag0.skill> = 100.0
+	endif
+	if <src.<tag0.skill2>> < 100.0
+		tag.old_skill2=<src.<tag0.skill2>>
+		src.<tag0.skill2> = 100.0
+	endif
+ON=@UnEquip
+	if !<isempty <tag.old_skill>>
+		src.<tag0.skill> = <dtag0.old_skill>
+		tag.old_skill=
+	endif
+	if !<isempty <tag.old_skill2>>
+		src.<tag0.skill2> = <dtag0.old_skill2>
+		tag.old_skill2=
+	endif
+
+[EOF]
