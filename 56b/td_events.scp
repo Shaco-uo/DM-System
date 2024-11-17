@@ -19,13 +19,12 @@ ON=@Death
 		local.team=<ref1.dtag0.team>
 		ref2=<serv.list.deathmatch_global.0> // stone
 		src.events=-e_deathmatch_fight
-		if <src.findlayer.25>
-			src.findlayer.25.remove
-		endif
+		src.f_remove_all_layers
 		ref2.tag0.team_<dlocal.team> --
 		if <ref2.tag0.team_<dlocal.team>>==0
 			serv.f_dm_win <qval <dlocal.team>==1?2:1>,<ref1.dtag0.list>
 		endif
+		src.f_restore_frombank
 		src.restore_me
 		src.go <ref1.tag0.old_p>
 		if !<isempty <ref1.tag.mount>>
