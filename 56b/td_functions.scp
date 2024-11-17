@@ -408,8 +408,10 @@ if <dtag0.list>==<dlocal.list> && <topobj.isplayer>
 	ref3=<topobj>
 	if <ref3.isevent.e_deathmatch_fight>
 		ref3.events=-e_deathmatch_fight
-		ref3.f_remove_all_layers
-		ref3.f_restore_frombank
+		if <def0.dm_add_equipment>==1
+			ref3.f_remove_all_layers
+			ref3.f_restore_frombank
+		endif
 		ref3.restore_me
 		ref3.go <tag0.old_p>
 		// if !<isempty <tag.mount>>
@@ -458,8 +460,10 @@ forinstances i_mem_deathmatch
 if <dtag0.list>==<dlocal.list> && <topobj.isevent.e_deathmatch_fight>
 	ref2=<topobj>
 	ref2.events=-e_deathmatch_fight
-	ref2.f_remove_all_layers
-	ref2.f_restore_frombank
+	if <def0.dm_add_equipment>==1
+		ref2.f_remove_all_layers
+		ref2.f_restore_frombank
+	endif
 	ref2.restore_me
 	ref2.go <tag0.old_p>
 	// if !<isempty <tag.mount>>

@@ -90,8 +90,10 @@ ON=@UnEquip
 	src.events=-e_deathmatch_create
 	if <src.isevent.e_deathmatch_fight>
 		src.events=-e_deathmatch_fight
-		src.f_remove_all_layers
-		src.f_restore_frombank
+		if <def0.dm_add_equipment>==1
+			src.f_remove_all_layers
+			src.f_restore_frombank
+		endif
 		src.restore_me
 	endif
 	if !<isempty <tag.mount>>
