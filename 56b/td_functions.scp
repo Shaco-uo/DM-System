@@ -616,35 +616,33 @@ spelleffect=s_dispel 4000
 update
 effect=3,i_fx_sparkle_2,10,16,10
 
-[FUNCTION f_save_onbank]
-for 1 24
-if !(<dlocal._for>==21 || <dlocal._for>==16 || <dlocal._for>==11)
-	if <src.findlayer.<dlocal._for>>
-		src.findlayer.<dlocal._for>.tag.this.wasequipped=1
-		src.findlayer.<dlocal._for>.unequip
-	endif
-endif
-endfor
-if <src.findlayer.21.rescount>
-	src.tag.backpack=<src.findlayer.21>
-	src.findlayer.21.attr=090
-	src.findlayer.21.cont=<src.findlayer.29>
-	src.bankself
-	src.fix
-	serv.newitem=i_gold
-	new.attr=attr_invis
-	new.bounce <src>
-	src.consume i_gold
-endif
-
 [FUNCTION f_remove_all_layers]
 for 1 25
-if !(<dlocal._for>==16) && !(<dlocal._for>==11)
+if !(<dlocal._for>==16 || <dlocal._for>==11)
 	if <findlayer.<dlocal._for>>
 		findlayer.<dlocal._for>.remove
 	endif
 endif
 endfor
+
+[FUNCTION f_save_onbank]
+ref1=<src.findlayer.21>
+for 1 24
+if !(<dlocal._for>==21 || <dlocal._for>==16 || <dlocal._for>==11)
+	if <src.findlayer.<dlocal._for>>
+		src.findlayer.<dlocal._for>.tag.this.wasequipped=1
+		src.findlayer.<dlocal._for>.cont=<ref1>
+	endif
+endif
+endfor
+if <ref1.rescount>
+	src.tag.backpack=<ref1>
+	ref1.cont=<src.findlayer.29>
+	ref1.attr=090
+	serv.newitem=i_backpack,1,<src>,1
+	new.attr=014
+	src.update
+endif
 
 [FUNCTION f_restore_frombank]
 ref1=<uid>
@@ -664,7 +662,7 @@ forcont <src.findlayer.21> 10
 if !<isempty <tag.this.wasequipped>>
 	if <src.str> >= <reqstr>
 		equip
-	elif <src.str> < <reqstr>
+	else
 		bounce
 	endif
 	tag.this.wasequipped=
