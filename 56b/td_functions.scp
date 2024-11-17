@@ -48,6 +48,9 @@ args=<serv.list.deathmatch_global.<src.dctag0.deathmatch_opt>>
 ref2=<argv[0]>
 local.max_amt=<eval <argv[1]>*2>
 local.private=<argv[2]>
+if <ref1.dtag0.mode> >= 2 && <ref1.dtag0.list>==<src.dctag0.deathmatch_opt>
+	local.battle=1
+endif
 local.x=509
 local.y=65
 local.h=82
@@ -65,6 +68,10 @@ for 0 <eval <dlocal.max_amt>-1>
 ref3=<serv.list.deathmatch_<ref2>.<dlocal._for>>
 if <ref3>
 	dhtmlgump - *22 130 20 0 0 <def.bfont_size4><def.bfont_dm_text1><ref3.name>
+	if <local.battle>
+		local.hp=<muldiv <ref3.hits>,100,<ref3.maxhits>>
+		dhtmlgump +120 - 130 20 0 0 <def.bfont_size4><def.bfont_dm_text3><dlocal.hp>%
+	endif
 	gumppictiled - +18 120 1 9204
 	if <local.creator> && <dlocal._for> > 1
 		button +116 - 9700 9701 1 0 <eval <dlocal._for>+201>
@@ -73,7 +80,7 @@ if <ref3>
 endif
 endfor
 if !<src.findid.i_mem_deathmatch>
-	if <ref1.dtag0.mode> >= 2 && <ref1.dtag0.list>==<src.dctag0.deathmatch_opt>
+	if <local.battle>
 		button - *24 2361 2360 1 0 102 // back to list menu
 		dhtmlgump +16 -3 90 20 0 0 <def.bfont_size4><def.bfont_dm_text2>In Battle
 	elif <serv.list.deathmatch_<ref2>.count>==<dlocal.max_amt>
@@ -150,7 +157,7 @@ if <dlocal.count>
 			local.time_left="<eval <ref2.findid.i_mem_deathmatch.timer>/60>m"
 		else
 			if <f_dm_isin_queue <ref3>>
-				local.time_left="Queue[<f_dm_queue_pos <ref3>>]"
+				local.time_left="Queued [<f_dm_queue_pos <ref3>>]"
 			elif <ref1.dtag0.mode>==1
 				local.time_left="Confirm" //<eval <ref1.timer>/60>
 			elif <ref1.dtag0.mode> >= 2
@@ -158,8 +165,6 @@ if <dlocal.count>
 			endif
 		endif
 	endif
-
-	// local.time_left=<qval <ref2.findid.i_mem_deathmatch>?<eval <ref2.findid.i_mem_deathmatch.timer>/60>:0>
 	local.max_amt=<eval <argv[1]>*2>
 	local.private=<argv[2]>
 	local.amt=<serv.list.deathmatch_<ref2>.count>
@@ -348,7 +353,7 @@ else
 	endif
 	ref3.restore_me
 	if <def0.dm_add_equipment>==1
-		ref3.f_save_onbank
+		ref3.trysrc <ref3> f_save_onbank
 		ref3.f_dm_equip <ref4.dtag0.team>
 	endif
 	ref3.go <def.dm_arena_p<ref4.dtag0.team>>
@@ -360,11 +365,6 @@ else
 	ref1.tag.mode=2
 	ref1.timer=1
 endif
-
-
-
-
-
 
 [FUNCTION f_dm_equip]
 ref1=<uid>
@@ -380,7 +380,6 @@ serv.newitem=<argv[0]>,<argv[1]>,<ref1.findlayer.21>
 new.events=+t_dm_item
 new.contp=<argv[2]>,<argv[3]>
 endfor
-
 if <def0.dm_add_mount>==1
 	serv.newnpc=<def.dm_mount_id>
 	ref2=<new>
@@ -391,11 +390,6 @@ if <def0.dm_add_mount>==1
 endif
 ref1.findlayer.2.color=<def.dm_team_color_<dlocal.team>>
 ref1.findlayer.22.color=<def.dm_team_color_<dlocal.team>>
-
-
-
-
-
 
 [FUNCTION f_dm_win]
 ref1=<serv.list.deathmatch_global.0>
@@ -414,7 +408,17 @@ if <dtag0.list>==<dlocal.list> && <topobj.isplayer>
 	ref3=<topobj>
 	if <ref3.isevent.e_deathmatch_fight>
 		ref3.events=-e_deathmatch_fight
+		ref3.f_remove_all_layers
+		ref3.f_restore_frombank
 		ref3.restore_me
+		ref3.go <tag0.old_p>
+		if !<isempty <tag.mount>>
+			ref4=<tag.mount>
+			ref4.go=<ref2.p>
+			ref3.mount <ref4>
+			tag.mount=
+		endif
+		tag.old_p=
 		if <local.single> && <dtag0.team>==<dlocal.team>
 			serv.f_dm_sysmessage <dlocal.list>,<def0.dm_winmsg_color>,<ref3.name> won the match!!
 			local.single=
@@ -423,6 +427,52 @@ if <dtag0.list>==<dlocal.list> && <topobj.isplayer>
 endif
 endfor
 serv.f_deathmatch_remove_list <dlocal.list>
+
+[FUNCTION f_dm_timeout_start]
+local.list=<args>
+serv.f_dm_message <dlocal.list>,<def0.dm_msg_color>,Match will timeout in <def0.dm_extra_time> seconds.
+serv.newitem=i_dm_timeout
+new.tag.list=<dlocal.list>
+new.p=<def.dm_arena_center>
+new.timer=<def0.dm_extra_time>
+
+[FUNCTION f_dm_timeout]
+ref1=<serv.list.deathmatch_global.0>
+local.list=<args>
+if <ref1.dtag0.team_1>==<ref1.dtag0.team_2>
+	local.draw=<ref1.dtag0.team_1>
+elif <ref1.dtag0.team_1> > <ref1.dtag0.team_2>
+	local.win_team=1
+	local.lose_team=2
+else
+	local.win_team=2
+	local.lose_team=1
+endif
+serv.f_dm_sysmessage <dlocal.list>,<def0.fail>,Battle Timeout.
+if <dlocal.draw>
+	serv.f_dm_sysmessage <dlocal.list>,<def0.dm_smsg_color>,The match ended in a draw [<dlocal.draw> - <dlocal.draw>].
+else
+	serv.f_dm_sysmessage <dlocal.list>,<def0.dm_smsg_color>,<def.dm_team_name_<dlocal.win_team>> team Wins [<ref1.dtag0.team_<dlocal.win_team>> - <ref1.dtag0.team_<dlocal.lose_team>>].
+endif
+forinstances i_mem_deathmatch
+if <dtag0.list>==<dlocal.list> && <topobj.isevent.e_deathmatch_fight>
+	ref2=<topobj>
+	ref2.events=-e_deathmatch_fight
+	ref2.f_remove_all_layers
+	ref2.f_restore_frombank
+	ref2.restore_me
+	ref2.go <tag0.old_p>
+	if !<isempty <tag.mount>>
+		ref3=<tag.mount>
+		ref3.go=<ref2.p>
+		ref2.mount <ref3>
+		tag.mount=
+	endif
+	tag.old_p=
+endif
+endfor
+serv.f_deathmatch_remove_list <dlocal.list>
+serv.f_dm_check_queue <dlocal.list>
 
 [FUNCTION f_deathmatch_remove_list]
 ref1=<serv.list.deathmatch_global.0>
@@ -458,7 +508,6 @@ if <dlocal.count> > 0
 	ref1.timer=<def0.dm_queue_time>
 	serv.f_dm_queue_remove <ref1>
 endif
-
 
 [FUNCTION f_dm_queue_pos]
 if <serv.list.deathmatch_queue.findelem <args>> != -1

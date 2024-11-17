@@ -3,7 +3,7 @@ dm_list_duration	1800 // 30 min
 dm_wait_time		10	 // after start match button pressed
 dm_fight_time		480  // 8 min fight max duration. will add dm_extra_time after
 dm_queue_time		60  // will add to mem timers and place queued 1st
-dm_countdown		10	// arrived at arena, walls blocking
+dm_countdown		30	// arrived at arena, walls blocking, prepare for combat
 dm_extra_time		30	// time to finish/abot battle
 
 dm_arena_p1			5272,1776,0,0	// S corner
@@ -11,6 +11,8 @@ dm_arena_p2			5247,1751,0,0	// N corner
 dm_arena_center		5261,1764,0,0
 dm_mount_zone		5249,1800,0,0	// Black Area, mounts will wait here
 
+dm_team_name_1		Blue
+dm_team_name_2		Red
 dm_team_color_1		05e // blue
 dm_team_color_2		08a // red
 dm_add_equipment	1
