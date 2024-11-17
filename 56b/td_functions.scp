@@ -401,7 +401,7 @@ local.amt=<argv[1]>
 if <dlocal.amt>==1
 	local.single=1
 else
-	serv.f_dm_sysmessage <dlocal.list>,<def0.dm_winmsg_color>,Team <dlocal.team> won the match!!
+	serv.f_dm_sysmessage <dlocal.list>,<def0.dm_winmsg_color>,<def.dm_team_name_<dlocal.team>> Team wins the battle [<ref1.dtag0.team_<dlocal.team>> - 0]!!
 endif
 forinstances i_mem_deathmatch
 if <dtag0.list>==<dlocal.list> && <topobj.isplayer>
