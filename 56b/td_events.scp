@@ -102,4 +102,27 @@ ON=@Equip
 on=@Unequip
 	src.modar -= <dtag0.armor_increase>
 
+[REGIONTYPE r_deathmatch_arena]
+ON=@Enter
+	if <src.isplayer>
+		src.tag.old_karma=<src.karma>
+		src.tag.old_kills=<src.kills>
+		if !<isempty <tag.music>>
+			src.music=<tag.music>
+		endif
+	endif
+
+ON=@Exit
+	if <src.isplayer>
+		if !<isempty <src.tag.old_karma>>
+			src.karma=<src.dtag0.old_karma>
+			src.tag.old_karma=
+		endif
+		if !<isempty <src.tag.old_kills>>
+			src.kills=<src.dtag0.old_kills>
+			src.tag.old_kills=
+		endif
+		src.clear_mems_flags
+	endif
+
 [EOF]

@@ -688,6 +688,33 @@ if <isempty <tag.armor_increase>>
 	events +t_armor_increase
 endif
 
+[FUNCTION removeallmems]
+if <memoryfindtype.<args>>
+	while <memoryfindtype.<args>>
+	try memoryfindtype.<args>.remove
+	endwhile
+endif
+
+[FUNCTION clear_mems_flags]
+removeallmems memory_fight
+removeallmems memory_irritatedby
+removeallmems memory_harmedby
+removeallmems memory_iaggressor
+removeallmems memory_sawcrime
+removeallmems memory_aggreived
+if <flags>&statf_incognito
+	flags &= ~statf_incognito
+endif
+if <flags>&statf_war
+	flags &= ~statf_war
+endif
+if <flags>&statf_invisible
+	flags &= ~statf_invisible
+endif
+if <flags>&statf_criminal
+	flags &= ~statf_criminal
+endif
+
 // [FUNCTION isdialogopen] // uncomment
 // for 0 <eval <dialoglist.count> - 1>
 // 	if strmatch("<dialoglist.<dlocal._for>.id>","<args>")
