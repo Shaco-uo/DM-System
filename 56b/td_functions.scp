@@ -426,13 +426,11 @@ serv.f_deathmatch_remove_list <dlocal.list>
 [FUNCTION f_deathmatch_remove_list]
 ref1=<serv.list.deathmatch_global.0>
 local.list=<args>
-local.count=<eval <serv.list.deathmatch_global.count>-1>
 ref2=<strarg <serv.list.deathmatch_global.<dlocal.list>>>
 forinstances i_mem_deathmatch
 if <dtag0.list>==<dlocal.list>
 	remove
 elif <dtag0.list> > <dlocal.list>
-	// fix queue list too serv.list.deathmatch_queue
 	tag0.list --
 endif
 endfor
