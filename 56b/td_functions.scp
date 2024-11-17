@@ -412,12 +412,12 @@ if <dtag0.list>==<dlocal.list> && <topobj.isplayer>
 		ref3.f_restore_frombank
 		ref3.restore_me
 		ref3.go <tag0.old_p>
-		if !<isempty <tag.mount>>
-			ref4=<tag.mount>
-			ref4.go=<ref2.p>
-			ref3.mount <ref4>
-			tag.mount=
-		endif
+		// if !<isempty <tag.mount>>
+		// 	ref4=<tag.mount>
+		// 	ref4.go=<ref2.p>
+		// 	ref3.mount <ref4>
+		// 	tag.mount=
+		// endif
 		tag.old_p=
 		if <local.single> && <dtag0.team>==<dlocal.team>
 			serv.f_dm_sysmessage <dlocal.list>,<def0.dm_winmsg_color>,<ref3.name> won the match!!
@@ -462,12 +462,12 @@ if <dtag0.list>==<dlocal.list> && <topobj.isevent.e_deathmatch_fight>
 	ref2.f_restore_frombank
 	ref2.restore_me
 	ref2.go <tag0.old_p>
-	if !<isempty <tag.mount>>
-		ref3=<tag.mount>
-		ref3.go=<ref2.p>
-		ref2.mount <ref3>
-		tag.mount=
-	endif
+	// if !<isempty <tag.mount>>
+	// 	ref3=<tag.mount>
+	// 	ref3.go=<ref2.p>
+	// 	ref2.mount <ref3>
+	// 	tag.mount=
+	// endif
 	tag.old_p=
 endif
 endfor
