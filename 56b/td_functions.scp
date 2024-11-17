@@ -555,20 +555,14 @@ resizepic <argv[0]> <argv[1]> <def.dm_dlg_bg> <argv[2]> <argv[3]>
 gumppictiled <eval <argv[0]>+4> <eval <argv[1]>+6> <eval <argv[2]>-9> <eval <argv[3]>-10> 2624
 checkertrans <eval <argv[0]>+4> <eval <argv[1]>+6> <eval <argv[2]>-9> <eval <argv[3]>-10>
 
-[FUNCTION f_dm_check_follower]
-local.slots=<args>
-if <src.curfollower>!=<dlocal.slots>
-	src.curfollower=<dlocal.slots>
-endif
-
-// [FUNCTION restore_me]// uncomment
-// hits=<maxhits>
-// mana=<maxmana>
-// stam=<maxstam>
-// cure 1
-// spelleffect=s_dispel 4000
-// update
-// effect=3,i_fx_sparkle_2,10,16,10
+[FUNCTION restore_me]// uncomment
+hits=<maxhits>
+mana=<maxmana>
+stam=<maxstam>
+cure 1
+spelleffect=s_dispel 4000
+update
+effect=3,i_fx_sparkle_2,10,16,10
 
 // [FUNCTION isdialogopen] // uncomment
 // for 0 <eval <dialoglist.count> - 1>
