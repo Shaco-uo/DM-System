@@ -32,6 +32,7 @@ ON=@Death
 			ref3=<ref1.tag.mount>
 			ref3.go=<src.p>
 			src.mount <ref3>
+			ref1.tag.mount=
 		endif
 		ref1.tag.old_p=
 		return 1
