@@ -587,13 +587,13 @@ serv.newitem=i_dm_fence2
 new.p=<local.fence_red_<dlocal._for>>
 endfor
 
-[FUNCTION f_get_fences_loc]
-local.team=red
-forinstances i_cw_fence1
+[FUNCTION f_fences_getloc] // f_fences_getloc red // use to get fences P
+local.team=<args>
+forinstances i_dm_fence1
 local.c ++
 serv.log local.fence_<local.team>_<dlocal.c> = "<p.x>,<p.y>,<p.z>,<map>"
 endfor
-forinstances i_cw_fence2
+forinstances i_dm_fence2
 local.c ++
 serv.log local.fence_<local.team>_<dlocal.c> = "<p.x>,<p.y>,<p.z>,<map>"
 endfor
