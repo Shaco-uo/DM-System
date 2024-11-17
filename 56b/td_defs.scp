@@ -63,6 +63,5 @@ bfont_dm_gray		<basefont color="#808080">  // gray
 // GROUP=Custom
 // P=5268,1755,0,0
 // RECT=5244,1748,5276,1780,0
-// tag.music=midi_PrimevalLich,midi_GenericCombat
 
 [EOF]
