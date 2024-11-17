@@ -119,24 +119,126 @@ DEFNAME=i_spellbook_dm
 ID=0efa
 NAME=Spellbook
 TYPE=t_spellbook
-WEIGHT=3.0
+WEIGHT=1.0
 LAYER=1
-TEVENTS=ei_equipitem,ei_custom_tooltip,t_dm_item,t_weapon_skillmax
-tag.skill=Magery
-tag.skill2=EvaluatingIntel
-tag.itemlevel=4
+TEVENTS=t_dm_item
 CATEGORY=Custom
 SUBSECTION=Event DM
 DESCRIPTION=DM Spellbook
 ON=@Create
 	MORE1=0772b4ffd
 	MORE2=0740738
+	f_setbonus_skillmax
 ON=@Dclick
-	if !<src.weapon> || <src.weapon>!=<uid>
+	if !<src.weapon.isvalid> || <src.weapon>!=<uid>
 		equip
 	endif
 
+[ITEMDEF i_bow_dm]
+DEFNAME=i_bow_dm
+ID=i_bow
+NAME=Combat Bow
+WEIGHT=1.0
+VALUE=1
+DAM=16,45
+SPEED=45
+SKILL=Archery
+TEVENTS=t_dm_item
+TDATA3=i_arrow
+TDATA4=i_arrow_x
+CATEGORY=Custom
+SUBSECTION=Event DM
+DESCRIPTION=DM Bow
+ON=@Create
+	hitpoints=50
+	f_setbonus_skillmax
 
+[ITEMDEF i_sword_dm]
+DEFNAME=i_sword_dm
+ID=i_sword_viking
+NAME=Combat Sword
+WEIGHT=1.0
+VALUE=1
+DAM=28,36
+SPEED=50
+SKILL=Swordsmanship
+TEVENTS=t_dm_item
+CATEGORY=Custom
+SUBSECTION=Event DM
+DESCRIPTION=DM Sword
+ON=@Create
+	hitpoints=50
+	f_setbonus_skillmax
+
+[ITEMDEF i_halberd_dm]
+DEFNAME=i_halberd_dm
+ID=i_halberd
+NAME=Combat Halberd
+WEIGHT=1.0
+VALUE=1
+DAM=34,44
+SPEED=39
+SKILL=Swordsmanship
+TEVENTS=t_dm_item
+CATEGORY=Custom
+SUBSECTION=Event DM
+DESCRIPTION=DM Halberd
+ON=@Create
+	hitpoints=50
+	f_setbonus_skillmax
+
+[ITEMDEF i_war_fork_dm]
+DEFNAME=i_war_fork_dm
+ID=i_war_fork
+NAME=Combat Fork
+WEIGHT=1.0
+VALUE=1
+DAM=28,36
+SPEED=50
+SKILL=Fencing
+TEVENTS=t_dm_item
+CATEGORY=Custom
+SUBSECTION=Event DM
+DESCRIPTION=DM Fork
+ON=@Create
+	hitpoints=50
+	f_setbonus_skillmax
+
+[ITEMDEF i_mace_war_dm]
+DEFNAME=i_mace_war_dm
+ID=i_mace_war
+NAME=Combat Mace
+WEIGHT=1.0
+VALUE=1
+DAM=28,36
+SPEED=50
+SKILL=MaceFighting
+TEVENTS=t_dm_item
+CATEGORY=Custom
+SUBSECTION=Event DM
+DESCRIPTION=DM Mace
+ON=@Create
+	hitpoints=50
+	f_setbonus_skillmax
+
+[ITEMDEF i_shield_dm]
+DEFNAME=i_shield_dm
+ID=i_shield_round_metal
+NAME=Metal Shield
+TYPE=t_shield
+ARMOR=20
+VALUE=1
+WEIGHT=1.0
+REQSTR=45
+RESOURCES=14 i_ingot_iron
+SKILLMAKE=Blacksmithing 10.0,Armslore 10.0
+TEVENTS=t_dm_item
+CATEGORY=Custom
+SUBSECTION=Event DM
+DESCRIPTION=DM Shield
+ON=@Create
+	hitpoints=40
+	f_setbonus_armor_increase 15
 
 [TEMPLATE dm_weapons]
 DEFNAME=dm_weapons
@@ -144,25 +246,15 @@ CATEGORY=Custom
 SUBSECTION=Event DM
 DESCRIPTION=Weapon Bag
 CONTAINER=i_backpack
-ITEM=i_sword_viking
-EVENTS=+t_dm_item
-EVENTS=+t_dm_weapon
+ITEM=i_sword_dm
 CONTP=20,20
-ITEM=i_mace_war
-EVENTS=+t_dm_item
-EVENTS=+t_dm_weapon
+ITEM=i_mace_war_dm
 CONTP=80,20
-ITEM=i_war_fork
-EVENTS=+t_dm_item
-EVENTS=+t_dm_weapon
+ITEM=i_war_fork_dm
 CONTP=120,20
-ITEM=i_bow
-EVENTS=+t_dm_item
-EVENTS=+t_dm_weapon
+ITEM=i_bow_dm
 CONTP=60,160
-ITEM=i_halberd
-EVENTS=+t_dm_item
-EVENTS=+t_dm_weapon
+ITEM=i_halberd_dm
 CONTP=120,160
 
 [TEMPLATE dm_reagents]

@@ -24,7 +24,7 @@ dm_equip_item_3		i_platemail_helm,0455
 dm_equip_item_4		i_platemail_gloves,0455
 dm_equip_item_5		i_platemail_arms,0455
 dm_equip_item_6		i_platemail_gorget,0455
-dm_equip_item_7		i_shield_round_metal,0
+dm_equip_item_7		i_shield_dm,0
 dm_equip_item_8		i_robe,0
 
 dm_pack_item_total	7

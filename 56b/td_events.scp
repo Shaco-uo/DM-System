@@ -66,20 +66,21 @@ ON=@Dropon_Item
 		return 1
 	endif
 ON=@Dropon_Ground
-	destroy 1
-
-[TYPEDEF t_dm_weapon]
-// add tooltip
-ON=@Equip
-	if <isweapon> && <isempty <tag.skill>>
-		tag.skill=<serv.skill.<skill>.key>
-		tag.skill2=Tactics
+	if <argo.type>==t_spellbook
+		return 1
+	else
+		destroy 1
 	endif
+
+[TYPEDEF t_weapon_skillmax]
+ON=@Clienttooltip
+	ADDCLILOC <def.empty_cliloc>,<def.bfont_lyellow>Max Skill<def.bfont_white>
+ON=@Equip
 	if <src.<tag0.skill>> < 100.0
 		tag.old_skill=<src.<tag0.skill>>
 		src.<tag0.skill> = 100.0
 	endif
-	if <src.<tag0.skill2>> < 100.0
+	if !<isempty <tag.skill2>> && <src.<tag0.skill2>> < 100.0
 		tag.old_skill2=<src.<tag0.skill2>>
 		src.<tag0.skill2> = 100.0
 	endif
@@ -92,5 +93,13 @@ ON=@UnEquip
 		src.<tag0.skill2> = <dtag0.old_skill2>
 		tag.old_skill2=
 	endif
+
+[TYPEDEF t_armor_increase]
+ON=@ClientTooltip
+	ADDCLILOC <def.empty_cliloc>,Armor Increase <dtag0.armor_increase>
+ON=@Equip
+	src.modar += <dtag0.armor_increase>
+on=@Unequip
+	src.modar -= <dtag0.armor_increase>
 
 [EOF]
