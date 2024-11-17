@@ -41,9 +41,8 @@ ON=@Death
 ON=@Dismount
 	if <src.findid.i_mem_deathmatch>
 		ref1=<src.findid.i_mem_deathmatch>
-		ref2=<argo>
-		ref2.go=<def.dm_mount_zone>
-		ref1.tag.mount=<ref2>
+		ref1.tag.mount=<argo>
+		argo.timerf 0,go=<def.dm_mount_zone>
 		src.events=-e_dm_mount_store
 	endif
 
