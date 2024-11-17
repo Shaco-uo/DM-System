@@ -28,7 +28,7 @@ dm_equip_item_7		i_shield_round_metal,0
 dm_equip_item_8		i_robe,0
 
 dm_pack_item_total	7
-dm_pack_item_1		dm_fuego,1,20,20 // baseid,amt,contp_x,contp_y
+dm_pack_item_1		dm_weapons,1,20,20 // baseid,amt,contp_x,contp_y
 dm_pack_item_2		dm_reagents,1,80,20
 dm_pack_item_3		i_spellbook_dm,1,20,100
 dm_pack_item_4		i_bandage,50,60,100
