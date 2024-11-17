@@ -342,7 +342,7 @@ else
 	endif
 	ref3.events=-e_deathmatch_create
 	ref3.events=+e_deathmatch_fight
-	if <ref3.findid.25>
+	if <ref3.findlayer.25>
 		ref3.events=+e_dm_mount_store
 		ref3.dismount
 	endif

@@ -19,8 +19,8 @@ ON=@Death
 		local.team=<ref1.dtag0.team>
 		ref2=<serv.list.deathmatch_global.0> // stone
 		src.events=-e_deathmatch_fight
-		if <src.findid.25>
-			src.findid.25.remove
+		if <src.findlayer.25>
+			src.findlayer.25.remove
 		endif
 		ref2.tag0.team_<dlocal.team> --
 		if <ref2.tag0.team_<dlocal.team>>==0
