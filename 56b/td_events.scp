@@ -1,41 +1,55 @@
 [EVENTS e_deathmatch_create]
 ON=@Logout
 	if <src.findid.i_mem_deathmatch>
-		ref1=<src.findid.i_mem_deathmatch>
-		serv.f_dm_sysmessage <ref1.dtag0.list>,<def.fail>,<src.name> was removed from the match list (logout).
-		serv.f_deathmatch_remove_player <src>,<ref1.dtag0.list>
+		ref2=<src.findid.i_mem_deathmatch>
+		ref1=<ref2.tag0.stone>
+		serv.f_dm_sysmessage <ref1>,<ref2.dtag0.list>,<def.fail>,<src.name> was removed from the match list (logout).
+		serv.f_deathmatch_remove_player <ref1>,<src>,<ref2.dtag0.list>
 	endif
 
 [EVENTS e_deathmatch_fight]
 ON=@Logout
 	if <src.findid.i_mem_deathmatch>
 		ref1=<src.findid.i_mem_deathmatch>
-		serv.f_dm_sysmessage <ref1.dtag0.list>,<def.fail>,<src.name> was removed from the match (logout).
+		serv.f_dm_sysmessage <ref1.tag0.stone>,<ref1.dtag0.list>,<def.fail>,<src.name> was removed from the match (logout).
 		trigger @Death
 	endif
+
 ON=@Death
 	if <src.findid.i_mem_deathmatch>
-		ref1=<src.findid.i_mem_deathmatch>
-		local.team=<ref1.dtag0.team>
-		ref2=<serv.list.deathmatch_global.0> // stone
-		src.events=-e_deathmatch_fight
-		ref2.tag0.team_<dlocal.team> --
-		if <ref2.tag0.team_<dlocal.team>>==0
-			serv.f_dm_win <qval <dlocal.team>==1?2:1>,<ref1.dtag0.list>
+		ref2=<src.findid.i_mem_deathmatch>
+		ref1=<ref2.tag0.stone> // stone
+		if <ref2.dtag0.team>==1
+			serv.list.dm_stone_<ref1>.17=<eval <serv.list.dm_stone_<ref1>.17>-1> // team 1 count
+			local.c=<serv.list.dm_stone_<ref1>.17>
+		else
+			serv.list.dm_stone_<ref1>.18=<eval <serv.list.dm_stone_<ref1>.18>-1> // team 2 count
+			local.c=<serv.list.dm_stone_<ref1>.18>
 		endif
-		if <def0.dm_add_equipment>==1
-			src.f_remove_all_layers
-			src.f_restore_frombank
+		if <dlocal.c>==0
+			serv.f_dm_win <ref1>,<qval <ref2.dtag0.team>==1?2:1>,<ref2.dtag0.list>
+		else
+			src.events=-e_deathmatch_fight
+			if <ref2.dtag0.dm_maxskill>==1 // max skills
+				serv.f_dm_restore_skills <src>,<uid>
+			endif
+			if <ref2.dtag0.dm_equip>==1
+				src.f_remove_all_layers
+				src.f_restore_frombank
+			endif
+			if <eval <serv.list.dm_stone_<ref1>.19>>==1
+				src.clear_mems_flags
+			endif
+			src.restore_me
+			src.go <ref2.tag0.old_p>
+			if !<isempty <ref2.tag.mount>>
+				ref3=<ref2.tag.mount>
+				ref3.go=<src.p>
+				src.mount <ref3>
+				ref2.tag.mount=
+			endif
+			ref2.tag.old_p=
 		endif
-		src.restore_me
-		src.go <ref1.tag0.old_p>
-		if !<isempty <ref1.tag.mount>>
-			ref3=<ref1.tag.mount>
-			ref3.go=<src.p>
-			src.mount <ref3>
-			ref1.tag.mount=
-		endif
-		ref1.tag.old_p=
 		return 1
 	endif
 
@@ -74,57 +88,12 @@ ON=@Dropon_Ground
 		destroy 1
 	endif
 
-[TYPEDEF t_weapon_skillmax]
-ON=@Clienttooltip
-	ADDCLILOC <def.empty_cliloc>,<def.bfont_lyellow>Max Skill<def.bfont_white>
-ON=@Equip
-	if <src.<tag0.skill>> < 100.0
-		tag.old_skill=<src.<tag0.skill>>
-		src.<tag0.skill> = 100.0
-	endif
-	if !<isempty <tag.skill2>> && <src.<tag0.skill2>> < 100.0
-		tag.old_skill2=<src.<tag0.skill2>>
-		src.<tag0.skill2> = 100.0
-	endif
-ON=@UnEquip
-	if !<isempty <tag.old_skill>>
-		src.<tag0.skill> = <dtag0.old_skill>
-		tag.old_skill=
-	endif
-	if !<isempty <tag.old_skill2>>
-		src.<tag0.skill2> = <dtag0.old_skill2>
-		tag.old_skill2=
-	endif
-
-[TYPEDEF t_armor_increase]
-ON=@ClientTooltip
-	ADDCLILOC <def.empty_cliloc>,Armor Increase <dtag0.armor_increase>
-ON=@Equip
-	src.modar += <dtag0.armor_increase>
-on=@Unequip
-	src.modar -= <dtag0.armor_increase>
-
-[REGIONTYPE r_deathmatch_arena]
-ON=@Enter
-	if <src.isplayer>
-		src.tag.old_karma=<src.karma>
-		src.tag.old_kills=<src.kills>
-		if !<isempty <tag.music>>
-			src.music=<tag.music>
-		endif
-	endif
-
-ON=@Exit
-	if <src.isplayer>
-		if !<isempty <src.tag.old_karma>>
-			src.karma=<src.dtag0.old_karma>
-			src.tag.old_karma=
-		endif
-		if !<isempty <src.tag.old_kills>>
-			src.kills=<src.dtag0.old_kills>
-			src.tag.old_kills=
-		endif
-		src.clear_mems_flags
-	endif
+// [TYPEDEF t_armor_increase]
+// ON=@ClientTooltip
+	// ADDCLILOC <def.empty_cliloc>,Armor Increase <dtag0.armor_increase>
+// ON=@Equip
+// 	src.modar += <dtag0.armor_increase>
+// on=@Unequip
+// 	src.modar -= <dtag0.armor_increase>
 
 [EOF]

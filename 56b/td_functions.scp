@@ -1,36 +1,41 @@
 [PLEVEL 1]
-deathmatch
 dmchat // chat for players in the same list
 
-
-[FUNCTION deathmatch]
-src.ctag.deathmatch_page=1
-dialogclose d_deathmatch_main
-sdialog d_deathmatch_main
-
 [FUNCTION f_deathmatch_init]
-ref1=<uid>
-serv.list.deathmatch_global.clear
-serv.list.deathmatch_queue.clear
-serv.list.deathmatch_global.add = <ref1>
-serv.log @3,0,1 DM Stone Created [<ref1.p.x>,<ref1.p.y>,<ref1.p.z>,<ref1.m>]
-forinstances i_stone_deathmatch
-if <uid>!=<ref1>
-	remove
-endif
+ref1=<args>
+serv.log @3,0,1 DM Stone Created [<ref1>] [<ref1.p.x>,<ref1.p.y>,<ref1.p.z>,<ref1.map>]
+for 0 19
+serv.list.dm_stone_<ref1>.add=0
 endfor
-forinstances i_mem_deathmatch
-remove
-endfor
+// 0 stone mode
+serv.list.dm_stone_<ref1>.1=1 // max players
+serv.list.dm_stone_<ref1>.2=<def.dm_arena_center> // arena center
+serv.list.dm_stone_<ref1>.3=<def.dm_arena_p1> // arena p1
+serv.list.dm_stone_<ref1>.4=<def.dm_arena_p2> // arena p2
+serv.list.dm_stone_<ref1>.5=<def.dm_team_name_1> // p1 team name
+serv.list.dm_stone_<ref1>.6=<def.dm_team_color_1> // p1 team color
+serv.list.dm_stone_<ref1>.7=<def.dm_team_name_2> // p2 team name
+serv.list.dm_stone_<ref1>.8=<def.dm_team_color_2> // p2 team color
+serv.list.dm_stone_<ref1>.9=1 // use equipment
+serv.list.dm_stone_<ref1>.10=1 // use mount
+serv.list.dm_stone_<ref1>.11=<def.dm_mount_id> // mount id
+serv.list.dm_stone_<ref1>.12=1 // free mode
+serv.list.dm_stone_<ref1>.13=1 // private allowed
+// 14 queued list
+serv.list.dm_stone_<ref1>.15=1 // max skills
+// 16 current list
+// 17 arena team 1 count
+// 18 arena team 2 count
+// 19 use clear_mems_flags
 
 [FUNCTION f_dm_dlg_tooltip]
 if <def0.dm_tooltips>==1
-	src.tooltip <def.empty_cliloc>,@<args>
+	tooltip <def.empty_cliloc>,@<args>
 endif
 
 [FUNCTION f_dlg_teamdm_sidebar]
 local.x=130
-local.y=86
+local.y=80
 f_dm_dialog <dlocal.x>,<dlocal.y>,34,32 // resizepic <dlocal.x> <dlocal.x> 9400 34 32
 button <eval <dlocal.x>+4> <eval <dlocal.y>+8> 4008 4010 1 0 101	// create list
 f_dm_dlg_tooltip New Deatmatch
@@ -38,52 +43,156 @@ local.y += 32
 f_dm_dialog <dlocal.x>,<dlocal.y>,34,32
 button <eval <dlocal.x>+4> <eval <dlocal.y>+8> 4011 4013 1 0 102	// join list
 f_dm_dlg_tooltip Join Deatmatch
+if <src.isgm>
+	local.y += 32
+	f_dm_dialog <dlocal.x>,<dlocal.y>,34,32
+	button <eval <dlocal.x>+4> <eval <dlocal.y>+8> 4029 4031 1 0 112	// GM MENU
+	f_dm_dlg_tooltip GM Menu
+endif
 
-[FUNCTION f_dlg_deathmatch_2]
-f_dlg_deathmatch_1
+[FUNCTION f_dlg_deathmatch_3] // gm config
+ref1=<args>
+f_dm_dialog 164,65,230,376 // BACKGROUND
+dorigin 176 80
+// stone name
+button +160 - 4005 4007 1 0 301
+dhtmlgump - +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Name
+resizepic +50 -1 3000 110 20
+dtextentrylimited +56 +1 90 20 0 301 28 <ref1.name>
+// arena center
+button +160 *26 4005 4007 1 0 302 // set loc
+button +194 +3 2117 2118 1 0 332	// set <src> current p
+dhtmlgump - +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Center
+resizepic +50 -1 3000 110 20
+local.p=<serv.list.dm_stone_<ref1>.2>
+dtextentrylimited +56 +1 90 20 0 302 28 <local.p>
+// arena p1
+button +160 *26 4005 4007 1 0 303
+button +194 +3 2117 2118 1 0 333	// set <src> current p
+dhtmlgump - +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>P1
+resizepic +50 -1 3000 110 20
+local.p=<serv.list.dm_stone_<ref1>.3>
+dtextentrylimited +56 +1 90 20 0 303 28 <local.p>
+// arena p2
+button +160 *26 4005 4007 1 0 304
+button +194 +3 2117 2118 1 0 334	// set <src> current p
+dhtmlgump - +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>P2
+resizepic +50 -1 3000 110 20
+local.p=<serv.list.dm_stone_<ref1>.4>
+dtextentrylimited +56 +1 90 20 0 304 28 <local.p>
+// max team players
+button +108 *26 4005 4007 1 0 305
+dhtmlgump - +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Players
+local.players=<serv.list.dm_stone_<ref1>.1>
+dhtmlgump +56 +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text2><dlocal.players><def.bfont_dm_text1> vs <def.bfont_dm_text2><dlocal.players>
+// team 1
+dhtmlgump +88 *26 90 20 0 0 <def.bfont_size4><def.bfont_dm_title>Team 1
+button +154 *22 4005 4007 1 0 306
+dhtmlgump - +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Name
+resizepic +42 -1 3000 110 20
+local.name=<serv.list.dm_stone_<ref1>.5>
+dtextentrylimited +48 +1 90 20 0 306 28 <local.name>
+button +154 *26 4005 4007 1 0 307
+dhtmlgump - +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Color
+resizepic +42 -1 3000 110 20
+dtextentrylimited +48 +1 90 20 0 307 4 <serv.list.dm_stone_<ref1>.6>
+tilepichue +172 -2 01b7b <eval <serv.list.dm_stone_<ref1>.6>>
+// team 2
+dhtmlgump +88 *26 90 20 0 0 <def.bfont_size4><def.bfont_dm_title>Team 2
+button +154 *22 4005 4007 1 0 308
+dhtmlgump - +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Name
+resizepic +42 -1 3000 110 20
+local.name=<serv.list.dm_stone_<ref1>.7>
+dtextentrylimited +48 +1 90 20 0 308 28 <local.name>
+button +154 *26 4005 4007 1 0 309
+dhtmlgump - +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Color
+resizepic +42 -1 3000 110 20
+dtextentrylimited +48 +1 90 20 0 309 4 <serv.list.dm_stone_<ref1>.8>
+tilepichue +172 -2 01b7b <eval <serv.list.dm_stone_<ref1>.8>>
+// use equip
+button - *26 <qval <eval <serv.list.dm_stone_<ref1>.9>>==1?9027 9026:9026 9027> 1 0 310
+dhtmlgump +24 +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Equipment
+// free mode
+button +90 - <qval <serv.list.dm_stone_<ref1>.12>==0?9026 9027:9027 9026> 1 0 313
+dhtmlgump +114 +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Free Mode
+// max skills
+button - *26 <qval <serv.list.dm_stone_<ref1>.15>==0?9026 9027:9027 9026> 1 0 314
+dhtmlgump +24 +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Max Skill
+// use clearmems
+button +90 - <qval <serv.list.dm_stone_<ref1>.19>==0?9026 9027:9027 9026> 1 0 315
+dhtmlgump +114 +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Clear Mems
+// use mount
+if <eval <serv.list.dm_stone_<ref1>.10>>==1
+	button - *26 9027 9026 1 0 311
+	resizepic +78 -1 3000 110 20
+	local.mount=<serv.list.dm_stone_<ref1>.11>
+	dtextentrylimited +84 +1 90 20 0 312 28 <local.mount>
+	button +194 +3 2117 2118 1 0 312
+else
+	button - *26 9026 9027 1 0 311
+endif
+dhtmlgump +24 +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Mount
 
-ref1=<serv.list.deathmatch_global.0>
-local.count=<eval <serv.list.deathmatch_global.count>-1>
-args=<serv.list.deathmatch_global.<src.dctag0.deathmatch_opt>>
-ref2=<argv[0]>
+
+
+[FUNCTION f_dlg_deathmatch_2] // created match players list
+ref1=<args>
+f_dlg_deathmatch_1 <ref1>
+local.mode=<serv.list.dm_stone_<ref1>.0>
+local.stone_count=<qval <eval <serv.list.dm_stone_<ref1>_matches.count>> < 1?0:<eval <serv.list.dm_stone_<ref1>_matches.count>>>
+local.freemode=<serv.list.dm_stone_<ref1>.12>
+local.mount=<serv.list.dm_stone_<ref1>.11>
+local.can_equip=<serv.list.dm_stone_<ref1>.9>
+local.can_mount=<serv.list.dm_stone_<ref1>.10>
+local.can_maxskill=<serv.list.dm_stone_<ref1>.15>
+local.x=492
+if <local.can_equip> && <def0.dm_player_noequip>!=1
+	local.x += 44
+endif
+if <local.can_maxskill> && <def0.dm_player_nomaxskill>!=1
+	local.x += 34
+endif
+if <local.can_mount> && <def0.dm_player_nomount>!=1
+	local.x += 38
+endif
+
+args=<serv.list.dm_stone_<ref1>_matches.<src.dctag0.deathmatch_opt>>
+ref2=<argv[0]> // creator mem
+ref3=<ref2.topobj>
+local.list=<ref2.dtag0.list>
 local.max_amt=<eval <argv[1]>*2>
 local.private=<argv[2]>
-if <ref1.dtag0.mode> >= 2 && <ref1.dtag0.list>==<src.dctag0.deathmatch_opt>
-	local.battle=1
-endif
-local.x=509
 local.y=65
 local.h=82
-if <ref2>==<src>
+if <ref3>==<src>
 	local.creator=1
-	if <serv.list.deathmatch_<ref2>.count>==<dlocal.max_amt>
+	if <serv.list.deathmatch_<ref3>.count>==<dlocal.max_amt>
 		local.h += 24
 	endif
 endif
-local.h += <eval (<serv.list.deathmatch_<ref2>.count>-2)*26>
-
-f_dm_dialog <dlocal.x>,<dlocal.y>,160,<dlocal.h> // BACKGROUND
+local.h += <eval (<serv.list.deathmatch_<ref3>.count>-2)*26>
+f_dm_dialog <dlocal.x>,<dlocal.y>,180,<dlocal.h> // BACKGROUND
 dorigin <eval <dlocal.x>+20> <eval <dlocal.y>-12>
 for 0 <eval <dlocal.max_amt>-1>
-ref3=<serv.list.deathmatch_<ref2>.<dlocal._for>>
-if <ref3>
-	dhtmlgump - *22 130 20 0 0 <def.bfont_size4><def.bfont_dm_text1><ref3.name>
-	if <local.battle>
-		local.hp=<muldiv <ref3.hits>,100,<ref3.maxhits>>
+ref4=<serv.list.deathmatch_<ref3>.<dlocal._for>>
+if <ref4>
+	dhtmlgump - *22 130 20 0 0 <def.bfont_size4><def.bfont_dm_text1><ref4.name>
+	if <dlocal.mode> >= 2 && <dlocal.list>==<eval <serv.list.dm_stone_<ref1>.16>>
+		local.hp=<muldiv <ref4.hits>,100,<ref4.maxhits>>
 		dhtmlgump +120 - 130 20 0 0 <def.bfont_size4><def.bfont_dm_text3><dlocal.hp>%
 	endif
-	gumppictiled - +18 120 1 9204
+	gumppictiled - +18 140 1 9204
 	if <local.creator> && <dlocal._for> > 1
-		button +116 - 9700 9701 1 0 <eval <dlocal._for>+201>
+		button +126 - 9700 9701 1 0 <eval <dlocal._for>+200> // member order
 		f_dm_dlg_tooltip Member order up
 	endif
 endif
 endfor
 if !<src.findid.i_mem_deathmatch>
-	if <local.battle>
+	if <dlocal.mode> >= 2 && <dlocal.list>==<eval <serv.list.dm_stone_<ref1>.16>>
 		button - *24 2361 2360 1 0 102 // back to list menu
 		dhtmlgump +16 -3 90 20 0 0 <def.bfont_size4><def.bfont_dm_text2>In Battle
-	elif <serv.list.deathmatch_<ref2>.count>==<dlocal.max_amt>
+	elif <serv.list.deathmatch_<ref3>.count>==<dlocal.max_amt>
 		button - *24 2361 2360 1 0 102 // back to list menu
 		dhtmlgump +16 -3 90 20 0 0 <def.bfont_size4><def.bfont_dm_text2>Full
 	else
@@ -99,15 +208,15 @@ if !<src.findid.i_mem_deathmatch>
 	endif
 else
 	if <local.creator>
-		if <serv.list.deathmatch_<ref2>.count>==<dlocal.max_amt>
-			if  <ref1.dtag0.mode>==0
+		if <serv.list.deathmatch_<ref3>.count>==<dlocal.max_amt>
+			if  <dlocal.mode>==0
 				button - *24 2361 2360 1 0 109 // start match
 				dhtmlgump +16 -3 40 20 0 0 <def.bfont_size4><def.bfont_dm_text2>Start
 			else
-				ref3=<src.findid.i_mem_deathmatch>
-				if <f_dm_isin_queue <ref3>>
+				ref4=<src.findid.i_mem_deathmatch>
+				if <f_dm_isin_queue <ref1>,<ref4>>
 					button - *24 2361 2360 1 0 102 // back to list menu
-					dhtmlgump +16 -3 80 20 0 0 <def.bfont_size4><def.bfont_dm_text2>Queued [<f_dm_queue_pos <ref3>>]
+					dhtmlgump +16 -3 80 20 0 0 <def.bfont_size4><def.bfont_dm_text2>Queued
 				else
 					button - *24 2361 2360 1 0 110 // add to queue
 					dhtmlgump +16 -3 40 20 0 0 <def.bfont_size4><def.bfont_dm_text2>Queue
@@ -121,7 +230,6 @@ else
 		if <local.private>
 			dhtmlgump +60 -3 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Code <def.bfont_dm_title><dlocal.private>
 		endif
-
 	elif <src.dctag0.deathmatch_opt>==<src.findid.i_mem_deathmatch.dtag0.list>
 		button - *24 2360 2361 1 0 108 // remove myself from list
 		dhtmlgump +16 -3 40 20 0 0 <def.bfont_size4><def.bfont_dm_red>Leave
@@ -133,473 +241,615 @@ endif
 
 
 [FUNCTION f_dlg_deathmatch_1] // global lists
-ref1=<serv.list.deathmatch_global.0>
-local.count=<eval <serv.list.deathmatch_global.count>-1>
+ref1=<args>
+local.stone_count=<qval <eval <serv.list.dm_stone_<ref1>_matches.count>> < 1?0:<eval <serv.list.dm_stone_<ref1>_matches.count>>>
+local.mode=<serv.list.dm_stone_<ref1>.0>
+local.freemode=<serv.list.dm_stone_<ref1>.12>
+local.mount=<serv.list.dm_stone_<ref1>.11>
+local.can_equip=<serv.list.dm_stone_<ref1>.9>
+local.can_mount=<serv.list.dm_stone_<ref1>.10>
+local.can_maxskill=<serv.list.dm_stone_<ref1>.15>
+local.w=334
+if <local.can_equip> && <def0.dm_player_noequip>!=1
+	local.w += 44
+endif
+if <local.can_maxskill> && <def0.dm_player_nomaxskill>!=1
+	local.w += 34
+endif
+if <local.can_mount> && <def0.dm_player_nomount>!=1
+	local.w += 38
+endif
 local.x=200
 local.y=120
-if <dlocal.count>
-	local.h=<eval (<dlocal.count>*24)+104>
-	f_dm_dialog 164,65,350,<dlocal.h>	// BACKGROUND
-	dhtmlgump 178 78 324 20 0 0 <def.bfont_size4><def.center><def.bfont_dm_title><def.h3><ref1.name>
-	dhtmlgump 178 98 324 20 0 0 <def.bfont_size4><def.center><def.bfont_dm_text1>Arena is <qval <ref1.dtag0.mode>==0?<def.bfont_dm_text2>Available:<def.bfont_dm_red>Unavailable>
-	dorigin <eval <dlocal.x>-20> <eval <dlocal.y>-20>
-	gumppictiled - +38 318 1 9204
-	dhtmlgump - *20 60 20 0 0 <def.bfont_size4><def.bfont_dm_title>Creator
-	dhtmlgump *126 - 60 20 0 0 <def.bfont_size4><def.bfont_dm_title>Players
-	dhtmlgump *60 - 60 20 0 0 <def.bfont_size4><def.bfont_dm_title>Private
-	dhtmlgump *60 - 60 20 0 0 <def.bfont_size4><def.bfont_dm_title>Time
-	for 1 <dlocal.count>
-	args=<serv.list.deathmatch_global.<dlocal._for>>
-	ref2=<argv[0]> // player uid
-	if <ref2.findid.i_mem_deathmatch>
-		ref3=<ref2.findid.i_mem_deathmatch>
-		if <ref3.timer> > 0
-			local.time_left="<eval <ref2.findid.i_mem_deathmatch.timer>/60>m"
-		else
-			if <f_dm_isin_queue <ref3>>
-				local.time_left="Queued [<f_dm_queue_pos <ref3>>]"
-			elif <ref1.dtag0.mode>==1
-				local.time_left="Confirm" //<eval <ref1.timer>/60>
-			elif <ref1.dtag0.mode> >= 2
-				local.time_left="In Combat" // <eval <ref1.timer>/60>m"
-			endif
-		endif
-	endif
-	local.max_amt=<eval <argv[1]>*2>
-	local.private=<argv[2]>
-	local.amt=<serv.list.deathmatch_<ref2>.count>
-	dorigin <eval <dlocal.x>-20> <dlocal.y>
-	gumppictiled - +38 318 1 9204
-	dhtmlgump - *20 120 20 0 0 <def.bfont_size4><def.bfont_dm_text1><ref2.name>
-	dhtmlgump *118 - 60 20 0 0 <def.center><def.bfont_size4><def.bfont_dm_text1><dlocal.amt> / <dlocal.max_amt>
-	dhtmlgump *64 - 50 20 0 0 <def.center><def.bfont_size4><def.bfont_dm_text1><qval <dlocal.private>==0?No:Yes>
-	dhtmlgump *50 - 60 20 0 0 <def.center><def.bfont_size4><def.bfont_dm_text1><qval <isempty <local.time_left>>?Expired:<local.time_left>>
-	button *70 +1 9762 9763 1 0 <dlocal._for>
-	local.y += 20
-	endfor
-else
-	f_dm_dialog 164,65,220,138 // BACKGROUND
-	dhtmlgump 176 78 198 20 0 0 <def.bfont_size4><def.center><def.bfont_dm_title><def.h3><ref1.name>
-	dhtmlgump 176 98 198 20 0 0 <def.bfont_size4><def.center><def.bfont_dm_text1>Arena is <qval <ref1.dtag0.mode>==0?<def.bfont_dm_text2>Available:<def.bfont_dm_red>Unavailable>
+if <dlocal.stone_count>==0
+	f_dm_dialog 164,65,220,124 // BACKGROUND
+	dhtmlgump 176 76 198 20 0 0 <def.bfont_size4><def.center><def.bfont_dm_title><def.h3><ref1.name>
+	dhtmlgump 176 94 198 20 0 0 <def.bfont_size4><def.center><def.bfont_dm_text1>Arena is <qval <serv.list.dm_stone_<ref1>.0>==0?<def.bfont_dm_text2>Available:<def.bfont_dm_red>Unavailable>
 	dorigin <eval <dlocal.x>-24> <dlocal.y>
 	dhtmlgump - - 198 20 0 0 <def.center><def.bfont_size4><def.bfont_dm_red>No matches found
-	button *48 *28 2361 2360 1 0 101
-	dhtmlgump +16 -3 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Create Match
+	button *48 *28 2117 2118 1 0 101
+	dhtmlgump +18 -2 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Create Match
+else
+	local.h=<eval (<dlocal.stone_count>*24)+104>
+	f_dm_dialog 164,65,<dlocal.w>,<dlocal.h>	// BACKGROUND
+	dorigin 180 100
+	gumppictiled - +38 <eval <dlocal.w>-32> 1 9204
+	dhtmlgump - *20 60 20 0 0 <def.bfont_size4><def.bfont_dm_title>Creator
+	dhtmlgump *124 - 60 20 0 0 <def.bfont_size4><def.bfont_dm_gray>Players
+	dhtmlgump *56 - 60 20 0 0 <def.bfont_size4><def.bfont_dm_gray>Public
+	if <local.can_equip> && <def0.dm_player_noequip>!=1
+		dhtmlgump *44 - 60 20 0 0 <def.bfont_size4><def.bfont_dm_gray>Equip
+	endif
+	if <local.can_maxskill> && <def0.dm_player_nomaxskill>!=1
+		dhtmlgump *40 - 60 20 0 0 <def.bfont_size4><def.bfont_dm_gray>Skills
+	endif
+	if <local.can_mount> && <def0.dm_player_nomount>!=1
+		dhtmlgump *36 - 60 20 0 0 <def.bfont_size4><def.bfont_dm_gray>Mount
+	endif
+	dhtmlgump *48 - 60 20 0 0 <def.bfont_size4><def.bfont_dm_gray>Time
+	for 0 <eval <dlocal.stone_count>-1>
+	args=<serv.list.dm_stone_<ref1>_matches.<dlocal._for>>
+	ref2=<argv[0]> // creator mem
+	ref3=<ref2.topobj> // creator
+	local.max_amt=<eval <argv[1]>*2>
+	local.private=<argv[2]>
+	local.amt=<serv.list.deathmatch_<ref3>.count>
+	if <dlocal.mode> > 0 && <ref2.dtag0.list>==<eval <serv.list.dm_stone_<ref1>.16>> // current list #
+		local.time=<def.bfont_dm_text2>In Battle
+	elif <ref2>==<strarg <serv.list.dm_stone_<ref1>.14>> // queued list
+		local.time=<def.bfont_dm_text3>Queued
+	elif <ref2.timer> > 60
+		local.time=<def.bfont_dm_text1><eval <ref2.timer>/60>m
+	else
+		local.time=<def.bfont_dm_red><ref2.timer>s
+	endif
+	dorigin <eval <dlocal.x>-20> <eval <dlocal.y>+2>
+	gumppictiled - +38 <eval <dlocal.w>-32> 1 9204
+	dhtmlgump - *20 120 20 0 0 <def.bfont_size4><def.bfont_dm_text1><ref3.name>
+	dhtmlgump *116 - 60 20 0 0 <def.center><def.bfont_size4><def.bfont_dm_text1><dlocal.amt> / <dlocal.max_amt>
+	gumppic *76 +2 <qval <dlocal.private>==0?2361:2360> // private
+	if <local.can_equip> && <def0.dm_player_noequip>!=1
+		gumppic *42 +2 <qval <ref2.dtag0.dm_equip>==0?2360:2361> // equip
+	endif	
+	if <local.can_maxskill> && <def0.dm_player_nomaxskill>!=1
+		gumppic *38 +2 <qval <ref2.dtag0.dm_maxskill>==0?2360:2361> // skills
+	endif
+	if <local.can_mount> && <def0.dm_player_nomount>!=1
+		gumppic *38 +2 <qval <ref2.dtag0.dm_mount>==0?2360:2361> // mount
+	endif
+	dhtmlgump *24 - 60 20 0 0 <def.center><def.bfont_size4><local.time>
+	button *68 +1 9762 9763 1 0 <eval <dlocal._for>+1> // select list
+	local.y += 22
+	endfor
+	dhtmlgump 176 76 <eval <dlocal.w>-20> 20 0 0 <def.bfont_size4><def.center><def.bfont_dm_title><def.h3><ref1.name>
+	dhtmlgump 176 94 <eval <dlocal.w>-20> 20 0 0 <def.bfont_size4><def.center><def.bfont_dm_text1>Arena is <qval <serv.list.dm_stone_<ref1>.0>==0?<def.bfont_dm_text2>Available:<def.bfont_dm_red>Unavailable>
 endif
 
-[FUNCTION f_dlg_deathmatch_0]
-ref1=<serv.list.deathmatch_global.0>
 
-f_dm_dialog 164,65,220,138 // BACKGROUND
+[FUNCTION f_dlg_deathmatch_0]
+ref1=<args>
+local.mode=<serv.list.dm_stone_<ref1>.0>
+local.freemode=<serv.list.dm_stone_<ref1>.12>
+if <def0.dm_player_noequip>!=1
+	local.can_equip=<serv.list.dm_stone_<ref1>.9>
+endif
+if <def0.dm_player_nomount>!=1
+	local.can_mount=<serv.list.dm_stone_<ref1>.10>
+	local.mount=<serv.list.dm_stone_<ref1>.11>
+endif
+if <def0.dm_player_nomaxskill>!=1
+	local.can_maxskill=<serv.list.dm_stone_<ref1>.15>
+endif
+local.h=168
+if <local.freemode>
+	if <local.can_equip> || <local.can_maxskill>
+		local.h += 26
+	endif
+	if <local.can_mount>
+		local.h += 26
+	endif
+endif
+f_dm_dialog 164,65,220,<dlocal.h> // BACKGROUND
 dhtmlgump 176 78 198 20 0 0 <def.bfont_size4><def.center><def.bfont_dm_title><def.h3><ref1.name>
-dhtmlgump 176 98 198 20 0 0 <def.bfont_size4><def.center><def.bfont_dm_text1>Arena is <qval <ref1.dtag0.mode>==0?<def.bfont_dm_text2>Available:<def.bfont_dm_red>Unavailable>
+dhtmlgump 176 98 198 20 0 0 <def.bfont_size4><def.center><def.bfont_dm_text1>Arena is <qval <dlocal.mode>==0?<def.bfont_dm_text2>Available:<def.bfont_dm_red>Unavailable>
 dorigin 190 104
 if <src.findid.i_mem_deathmatch>
-	local.list=<src.findid.i_mem_deathmatch.dtag0.list>
-	ref2=<strarg <serv.list.deathmatch_global.<dlocal.list>>>
-	if <ref2>==<src>
+	ref2=<src.findid.i_mem_deathmatch>
+	if !<isempty <ref2.tag0.creator>> && <ref2.tag.creator>==<src>
 		button *36 *32 2361 2360 1 0 106
 		dhtmlgump +14 -3 90 20 0 0 <def.bfont_size4><def.bfont_dm_red>Clear Current // List <dlocal.list>
 	else
 		dhtmlgump *40 *29 90 20 0 0 <def.bfont_size4><def.bfont_dm_red>Already Queued
 	endif
 else
-	if <isempty <src.ctag.match_amt>>
-		src.ctag0.match_amt=1
-	endif
-	dhtmlgump - *20 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Match Mode
-	dhtmlgump +100 - 80 20 0 0 <def.bfont_size4><def.bfont_dm_text2><src.dctag0.match_amt> vs <src.dctag0.match_amt>
-	button +152 +3 2361 2360 1 0 103
-	dhtmlgump - *20 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Private
-	button +152 +3 2361 2360 1 0 104
-	if <isempty <src.ctag.match_private>>
-		dhtmlgump +100 - 80 20 0 0 <def.bfont_size4><def.bfont_dm_text2>No
+	dhtmlgump -14 *20 198 20 0 0 <def.bfont_size4><def.center><def.bfont_dm_title>New Match
+	dhtmlgump +22 *20 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Players
+	
+	if <local.freemode>
+		if <isempty <src.ctag.match_amt>>
+			src.ctag.match_amt=1
+		endif
+		button - +1 5601 5605 1 0 103 // players amt++
+		dhtmlgump +90 - 80 20 0 0 <def.bfont_size4><def.bfont_dm_text2><src.dctag0.match_amt> vs <src.dctag0.match_amt>
+		
+		button - *26 <qval <src.dctag0.match_private>==0?9026 9027:9027 9026> 1 0 104 // private on/off/setcode
+		dhtmlgump +22 +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Private
+		if <isempty <src.ctag.match_private>>
+			dhtmlgump +90 - 80 20 0 0 <def.bfont_size4><def.bfont_dm_text2>No
+		else
+			resizepic +90 - 3000 50 20
+			dtextentrylimited +96 +1 70 15 1152 104 4 <src.dctag0.match_private>
+		endif
+		if <local.can_equip>
+			button - *26 <qval <src.dctag0.dm_addequip>==0?9026 9027:9027 9026> 1 0 20 // equip on/off
+			dhtmlgump +22 +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Equipment
+			if <local.can_maxskill>
+				button +90 - <qval <src.dctag0.dm_maxskill>==0?9026 9027:9027 9026> 1 0 21 // Skills on/off
+				dhtmlgump +112 +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Max Skills
+			endif
+		else
+			if <local.can_maxskill>
+				button - *26 <qval <src.dctag0.dm_maxskill>==0?9026 9027:9027 9026> 1 0 21
+				dhtmlgump +22 +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Max Skills
+			endif
+		endif
+		if <local.can_mount>
+			if <src.dctag0.dm_addmount>==1
+				button - *26 9027 9026 1 0 22
+				dhtmlgump +90 +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_gray><serv.chardef.<local.mount>.name>
+			else
+				button - *26 9026 9027 1 0 22
+			endif
+			dhtmlgump +24 +1 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Mount
+		endif
 	else
-		resizepic +100 - 3000 50 20
-		dtextentrylimited +106 +1 70 15 1152 1 4 <src.dctag0.match_private>
+		dhtmlgump +94 - 80 20 0 0 <def.bfont_size4><def.bfont_dm_text2><eval <serv.list.dm_stone_<ref1>.1>> vs <eval <serv.list.dm_stone_<ref1>.1>>
+		dhtmlgump +22 *20 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Private
+		dhtmlgump +94 - 80 20 0 0 <def.bfont_size4><def.bfont_dm_text2>No
 	endif
-	button *26 *32 2361 2360 1 0 105
-	dhtmlgump +14 -3 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Create Match
+	button +32 *32 2117 2118 1 0 105 // Create Match
+	dhtmlgump +50 -2 90 20 0 0 <def.bfont_size4><def.bfont_dm_text1>Create Match
+	f_dm_dlg_tooltip Create new match
 endif
 
-[FUNCTION f_dm_message] // serv.f_dm_message <dlocal.list>,color,text
-local.list=<dargv[0]>
+
+[FUNCTION f_dm_notice_sound]
+ref1=<argv[0]> // stone
+local.list=<dargv[1]>
 forinstances i_mem_deathmatch
-if <dtag0.list>==<dlocal.list> && <topobj.isplayer>
-	topobj.trysrc <topobj> message @<dargv[1]>,,1 <argv[2]>
+if <dtag0.list>==<dlocal.list> && <tag0.stone>==<ref1> && <topobj.isplayer>
+	topobj.trysrc <topobj> sound=<def0.dm_notice_sound>
 endif
 endfor
 
-[FUNCTION f_dm_sysmessage] // serv.f_dm_sysmessage <dlocal.list>,color,text
-local.list=<dargv[0]>
+[FUNCTION f_dm_resenddlg_list] // serv.f_dm_resenddlg_list <ref1>,<dlocal.list>
+ref1=<argv[0]> // stone
+local.list=<dargv[1]>
 forinstances i_mem_deathmatch
-if <dtag0.list>==<dlocal.list> && <topobj.isplayer> // weird error fix getting an i_mem_deathmatch as topobj
-	topobj.trysrc <topobj> sysmessage @<dargv[1]>,,1 <argv[2]>
+if <dtag0.list>==<dlocal.list> && <tag0.stone>==<ref1> && <topobj.isplayer>
+	ref2=<topobj>
+	if <ref2.isdialogopen.d_deathmatch_main> && <ref2.ctag0.dm_stone>==<ref1>
+		local.page=<ref2.dctag0.deathmatch_page>
+		local.opt=<ref2.dctag0.deathmatch_opt>
+		ref2.ctag.deathmatch_page=
+		ref2.ctag.deathmatch_opt=
+		trysrc <ref2> dialogclose d_deathmatch_main
+		if !<isempty <tag.creator>>
+			ref2.ctag.deathmatch_page=2
+			ref2.ctag.deathmatch_opt=<dlocal.list>
+		else
+			ref2.ctag.deathmatch_page=<dlocal.page>
+			ref2.ctag.deathmatch_opt=<dlocal.opt>
+		endif
+		trysrc <ref2> sdialog d_deathmatch_main
+	endif
+endif
+endfor
+
+[FUNCTION f_dm_message] // serv.f_dm_message <ref1>,<dlocal.list>,color,text
+ref1=<argv[0]> // stone
+local.list=<dargv[1]>
+forinstances i_mem_deathmatch
+if <dtag0.list>==<dlocal.list> && <tag0.stone>==<ref1> && <topobj.isplayer>
+	topobj.trysrc <topobj> message @<dargv[2]>,,1 <argv[3]>
+endif
+endfor
+
+[FUNCTION f_dm_sysmessage] // serv.f_dm_sysmessage <ref1>,<dlocal.list>,color,text
+ref1=<argv[0]>
+local.list=<dargv[1]>
+forinstances i_mem_deathmatch
+if <dtag0.list>==<dlocal.list> && <tag0.stone>==<ref1> && <topobj.isplayer>
+	topobj.trysrc <topobj> sysmessage @<dargv[2]>,,1 <argv[3]>
 endif
 endfor
 
 [FUNCTION dmchat] // dmchat text
 if <src.findid.i_mem_deathmatch>
-	local.list=<src.findid.i_mem_deathmatch.dtag0.list>
+	ref1=<src.findid.i_mem_deathmatch>
 	forinstances i_mem_deathmatch
-	if <dtag0.list>==<dlocal.list>// && <topobj.isplayer>
-		topobj.trysrc <topobj> sysmessage @<def0.dm_chatmsg_color>,,1 DM #<dlocal.list> ::: <src.name>: <args>
+	if <dtag0.list>==<ref1.dtag0.list> && <tag0.stone>==<ref1.tag0.stone> && <topobj.isplayer>
+		topobj.trysrc <topobj> sysmessage @<def0.dm_chatmsg_color>,,1 DM Chat ::: <qval <isempty <ref1.tag.creator>>?<src.name>:[Creator] <src.name>>: <args>
 	endif
 	endfor
 endif
 
-[FUNCTION f_deathmatch_remove_player] // serv.f_deathmatch_remove_player <src>,<ref1.dtag0.list>
-ref1=<argv[0]> // player
-local.list=<argv[1]>
-ref2=<strarg <serv.list.deathmatch_global.<dlocal.list>>> // creator
-local.count=<serv.list.deathmatch_<ref2>.count>
+[FUNCTION f_deathmatch_remove_player]
+ref1=<argv[0]> // stone
+ref2=<argv[1]> // player
+local.list=<argv[2]>
+ref3=<strarg <serv.list.dm_stone_<ref1>_matches.<dlocal.list>>> // creator mem
+ref4=<ref3.topobj> // creator
+local.time=<ref3.timer>
+local.count=<qval <serv.list.deathmatch_<ref4>.count>==-1?0:<serv.list.deathmatch_<ref4>.count>>
 if <dlocal.count>==1
-	serv.f_deathmatch_remove_list <dlocal.list>
+	serv.f_deathmatch_remove_list <ref1>,<dlocal.list>
+elif <ref2>==<ref4> // removing creator, needs to update global <argv[0]>
+	ref5=<serv.list.deathmatch_<ref4>.1> // new leader
+	ref6=<ref5.findid.i_mem_deathmatch>
+	args=<serv.list.dm_stone_<ref1>_matches.<dlocal.list>>
+	for 1 <eval <dlocal.count>-1>
+	serv.list.deathmatch_<ref5>.add=<serv.list.deathmatch_<ref4>.<dlocal._for>>
+	endfor
+	serv.list.dm_stone_<ref1>_matches.<dlocal.list>=<ref6>,<argv[1]>,<argv[2]>
+	serv.list.deathmatch_<ref4>.clear
+	ref6.tag.creator=<ref5>
+	if <dlocal.time>!=-1
+		ref6.timer=<dlocal.time>
+	endif
+	ref4.findid.i_mem_deathmatch.remove
+	serv.f_dm_sysmessage <ref1>,<dlocal.list>,<def.fail>,<ref4.name> has left the match list.
+	serv.f_dm_sysmessage <ref1>,<dlocal.list>,<def.dm_smsg_color>,The new leader is <ref5.name>.
+	serv.f_dm_resenddlg_list <ref1>,<dlocal.list>
 else
 	for 0 <eval <dlocal.count>-1>
-	ref3=<serv.list.deathmatch_<ref2>.<dlocal._for>>
-	if <ref3>==<ref1>
-		if <ref3>==<ref2> // removing creator, needs to update global <argv[0]>
-			args=<serv.list.deathmatch_global.<dlocal.list>>
-			local.newlist=<serv.list.deathmatch_<ref2>.1>,<argv[1]>,<argv[2]>
-			serv.list.deathmatch_global.<dlocal.list> = <local.newlist>
-		endif
-		local.name=<ref3.name>
-		serv.list.deathmatch_<ref2>.<dlocal._for>.remove
-		ref3.findid.i_mem_deathmatch.remove
+	ref5=<serv.list.deathmatch_<ref4>.<dlocal._for>>
+	if <ref5>==<ref2>
+		serv.list.deathmatch_<ref4>.<dlocal._for>.remove
 	endif
 	endfor
-	serv.f_dm_sysmessage <dlocal.list>,<def.fail>,<local.name> has left the match list.
+	ref2.findid.i_mem_deathmatch.remove
+	serv.f_dm_sysmessage <ref1>,<dlocal.list>,<def.fail>,<ref2.name> has left the match list.
+	serv.f_dm_resenddlg_list <ref1>,<dlocal.list>
 endif
 
 [FUNCTION f_deathmatch_prestart]
-ref1=<serv.list.deathmatch_global.0>
-local.list=<args> // <serv.list.deathmatch_global.>
-local.count=<eval <serv.list.deathmatch_global.count>-1>
-args=<serv.list.deathmatch_global.<dlocal.list>>
-ref2=<argv[0]> // player 1
-local.amt=<serv.list.deathmatch_<ref2>.count>
+ref1=<argv[0]> // stone
+local.list=<argv[1]>
+local.stone_count=<qval <eval <serv.list.dm_stone_<ref1>_matches.count>> < 1?0:<eval <serv.list.dm_stone_<ref1>_matches.count>>>
+
+args=<serv.list.dm_stone_<ref1>_matches.<dlocal.list>>
+ref2=<argv[0]> // creator mem
+ref3=<ref2.topobj> // creator
+local.amt=<serv.list.deathmatch_<ref3>.count>
 local.max_amt=<eval <argv[1]>*2>
+
 for 0 <eval <dlocal.max_amt>-1>
-ref3=<serv.list.deathmatch_<ref2>.<dlocal._for>>
-if !(<ref3> && <ref3.isonline>)
-	serv.list.deathmatch_<ref2>.<dlocal._for>.remove
+ref4=<serv.list.deathmatch_<ref3>.<dlocal._for>>
+if !(<ref4> && <ref4.isonline>)
+	serv.list.deathmatch_<ref3>.<dlocal._for>.remove
 	local.fail=1
 	local.c ++
 endif
 endfor
 if <local.fail>
-	ref1.tag.mode=
-	serv.f_dm_sysmessage <dlocal.list>,<def.fail>,<qval <dlocal.c>==1?A player:<dlocal.c> players> from your match list went offline.
-	serv.f_deathmatch_remove_list <dlocal.list>
-	serv.f_dm_check_queue <dlocal.list>
+	serv.list.dm_stone_<ref1>.0=0
+	serv.f_dm_sysmessage <ref1>,<dlocal.list>,<def.fail>,<qval <dlocal.c>==1?A player:<dlocal.c> players> from your match list went offline.
+	serv.f_deathmatch_remove_list <ref1>,<dlocal.list>
+	serv.f_dm_check_queue <ref1>
+	serv.f_dm_resenddlg_list <ref1>,<dlocal.list>
 else
-	serv.f_deathmatch_start <dlocal.list>
+	serv.f_deathmatch_start <ref1>,<dlocal.list>
 endif
 
 [FUNCTION f_deathmatch_start]
-ref1=<serv.list.deathmatch_global.0>
-local.list=<args>
-ref1.tag.mode=1
-ref1.tag.list=<dlocal.list>
+ref1=<argv[0]> // stone
+local.list=<argv[1]>
+serv.list.dm_stone_<ref1>.0=1 // mode
+serv.list.dm_stone_<ref1>.16=<dlocal.list> // current list
 ref1.more1=<def0.dm_wait_time>
 ref1.timer=1
-serv.f_dm_message <dlocal.list>,<def0.dm_msg_color>,Match starts in <def0.dm_wait_time> seconds
+serv.f_dm_message <ref1>,<dlocal.list>,<def0.dm_msg_color>,Match starts in <def0.dm_wait_time> seconds
 
 [FUNCTION f_dm_gotomatch]
-ref1=<serv.list.deathmatch_global.0>
-local.count=<eval <serv.list.deathmatch_global.count>-1>
-local.list=<args>
-args=<serv.list.deathmatch_global.<dlocal.list>>
-ref2=<argv[0]> // player 1
+ref1=<argv[0]>
+local.list=<argv[1]>
+args=<serv.list.dm_stone_<ref1>_matches.<dlocal.list>>
+ref2=<argv[0]> // creator mem
+ref3=<ref2.topobj> // creator
 local.amt=<argv[1]>
 local.max_amt=<eval <argv[1]>*2>
-
 for 0 <eval <dlocal.max_amt>-1>
-ref3=<serv.list.deathmatch_<ref2>.<dlocal._for>>
-if !(<ref3> && <ref3.isonline>)
-	serv.list.deathmatch_<ref2>.<dlocal._for>.remove
+ref4=<serv.list.deathmatch_<ref3>.<dlocal._for>>
+if !(<ref4> && <ref4.isonline>)
+	serv.list.deathmatch_<ref3>.<dlocal._for>.remove
 	local.fail=1
 	local.c ++
-elif <ref3.flags>&statf_dead
+elif <ref4.flags>&statf_dead
 	local.dead=1
 	local.d ++
 endif
 endfor
 if <local.fail>
-	serv.f_dm_sysmessage <dlocal.list>,<def.fail>,<qval <dlocal.c>==1?A player:<dlocal.c> players> from your match list went offline.
-	ref1.tag.mode=
+	serv.list.dm_stone_<ref1>.0=0
+	serv.f_dm_sysmessage <ref1>,<dlocal.list>,<def.fail>,<qval <dlocal.c>==1?A player:<dlocal.c> players> from your match list went offline.
+	serv.f_dm_resenddlg_list <ref1>,<dlocal.list>
 elif <local.dead>
-	serv.f_dm_sysmessage <dlocal.list>,<def.fail>,<qval <dlocal.d>==1?A player:<dlocal.d> players> from your match list died.
-	ref1.tag.mode=
+	serv.list.dm_stone_<ref1>.0=0
+	serv.f_dm_sysmessage <ref1>,<dlocal.list>,<def.fail>,<qval <dlocal.d>==1?A player:<dlocal.d> players> from your match list died.
+	serv.f_dm_resenddlg_list <ref1>,<dlocal.list>
 else
-	if <ref2.findid.i_mem_deathmatch>
-		ref2.findid.i_mem_deathmatch.timer=-1 // cancel timer on creator mem
+	if <ref3.findid.i_mem_deathmatch>
+		ref3.findid.i_mem_deathmatch.timer=-1 // cancel timer on creator mem
 	endif
 	for 0 <eval <dlocal.max_amt>-1>
-	ref3=<serv.list.deathmatch_<ref2>.<dlocal._for>>
-	ref4=<ref3.findid.i_mem_deathmatch>
-	ref4.tag.old_p=<ref3.p.x>,<ref3.p.y>,<ref3.p.z>,<ref3.map>
+	ref4=<serv.list.deathmatch_<ref3>.<dlocal._for>> // player
+	ref5=<ref4.findid.i_mem_deathmatch> // player mem
+	ref5.tag.old_p=<ref4.p.x>,<ref4.p.y>,<ref4.p.z>,<ref4.map>
 	if <dlocal._for> < <dlocal.amt>
-		ref4.tag.team=1
+		ref5.tag.team=1
+		local.arena_loc=<serv.list.dm_stone_<ref1>.3>
 	else
-		ref4.tag.team=2
+		ref5.tag.team=2
+		local.arena_loc=<serv.list.dm_stone_<ref1>.4>
 	endif
-	ref3.events=-e_deathmatch_create
-	ref3.events=+e_deathmatch_fight
-	if <ref3.findlayer.25>
-		ref3.events=+e_dm_mount_store
-		ref3.dismount
+	ref4.events=-e_deathmatch_create
+	ref4.events=+e_deathmatch_fight
+	if <ref4.findlayer.25> // && <ref2.dtag0.dm_mount>==1
+		ref4.events=+e_dm_mount_store
+		ref4.dismount
 	endif
-	ref3.restore_me
-	if <def0.dm_add_equipment>==1
-		ref3.trysrc <ref3> f_save_onbank
-		ref3.f_dm_equip <ref4.dtag0.team>
+	if <ref2.dtag0.dm_maxskill>==1 // max skills
+		serv.f_dm_save_skills <ref4>,<ref5>
 	endif
-	ref3.go <def.dm_arena_p<ref4.dtag0.team>>
+	if <ref2.dtag0.dm_equip>==1
+		ref4.trysrc <ref4> f_save_onbank
+		serv.f_dm_equip <ref1>,<ref4>,<ref5.dtag0.team>,<ref2.dtag0.dm_mount>
+	endif
+	if <ref4.isdialogopen.d_deathmatch_main>
+		ref4.ctag.deathmatch_page=
+		ref4.ctag.deathmatch_opt=
+		ref4.trysrc <ref4> dialogclose d_deathmatch_main
+	endif
+	ref4.restore_me
+	ref4.go <local.arena_loc>
 	endfor
-	ref1.tag.team_1=<dlocal.amt>
-	ref1.tag.team_2=<dlocal.amt>
-	ref1.tag.list=<dlocal.list>
+
+	serv.list.dm_stone_<ref1>.0=2 // mode
+	serv.list.dm_stone_<ref1>.16=<dlocal.list> // set current list
+	serv.list.dm_stone_<ref1>.17=<dlocal.amt> // team 1 count
+	serv.list.dm_stone_<ref1>.18=<dlocal.amt> // team 2 count
 	ref1.more1=<def0.dm_countdown>
-	ref1.tag.mode=2
 	ref1.timer=1
 endif
 
-[FUNCTION f_dm_equip]
-ref1=<uid>
-local.team=<args>
-for 1 <def0.dm_equip_item_total>
-serv.newitem=<strarg <def.dm_equip_item_<dlocal._for>>>,1,<ref1>,1
-new.color=<streat <def.dm_equip_item_<dlocal._for>>>
-new.events=+t_dm_item
-endfor
-for 1 <def0.dm_pack_item_total>
-args=<def.dm_pack_item_<dlocal._for>>
-serv.newitem=<argv[0]>,<argv[1]>,<ref1.findlayer.21>
-new.events=+t_dm_item
-new.contp=<argv[2]>,<argv[3]>
-endfor
-if <def0.dm_add_mount>==1
-	serv.newnpc=<def.dm_mount_id>
-	ref2=<new>
-	new.color=<def.dm_team_color_<dlocal.team>>
-	new.p=<ref1.p>
-	ref2.f_MakePetOf <ref1>
-	ref1.mount <ref2>
-endif
-ref1.findlayer.2.color=<def.dm_team_color_<dlocal.team>>
-ref1.findlayer.22.color=<def.dm_team_color_<dlocal.team>>
-
 [FUNCTION f_dm_win]
-ref1=<serv.list.deathmatch_global.0>
-local.team=<argv[0]>
-local.list=<argv[1]>
-args=<serv.list.deathmatch_global.<dlocal.list>>
-ref2=<argv[0]>
+ref1=<argv[0]> // stone
+local.team=<argv[1]>
+local.list=<argv[2]>
+local.team_1_name=<serv.list.dm_stone_<ref1>.5>
+local.team_2_name=<serv.list.dm_stone_<ref1>.7>
+local.team_1_count=<serv.list.dm_stone_<ref1>.17>
+local.team_2_count=<serv.list.dm_stone_<ref1>.18>
+args=<serv.list.dm_stone_<ref1>_matches.<dlocal.list>>
+ref2=<argv[0]> // creator mem
 local.amt=<argv[1]>
 if <dlocal.amt>==1
 	local.single=1
 else
-	serv.f_dm_sysmessage <dlocal.list>,<def0.dm_winmsg_color>,<def.dm_team_name_<dlocal.team>> Team wins the battle [<ref1.dtag0.team_<dlocal.team>> - 0]!!
+	serv.f_dm_sysmessage <ref1>,<dlocal.list>,<def0.dm_winmsg_color>,<local.team_<dlocal.team>_name> Team wins the battle [<local.team_<dlocal.team>_count> - 0]!!
 endif
 forinstances i_mem_deathmatch
-if <dtag0.list>==<dlocal.list> && <topobj.isplayer>
+if <dtag0.list>==<dlocal.list> && <tag0.stone>==<ref1> && <topobj.isplayer>
 	ref3=<topobj>
 	if <ref3.isevent.e_deathmatch_fight>
 		ref3.events=-e_deathmatch_fight
-		if <def0.dm_add_equipment>==1
+		if <dtag0.dm_maxskill>==1 // max skills
+			serv.f_dm_restore_skills <ref3>,<uid>
+		endif
+		if <dtag0.dm_equip>==1
 			ref3.f_remove_all_layers
 			ref3.f_restore_frombank
 		endif
+		if <eval <serv.list.dm_stone_<ref1>.19>>==1
+			ref3.clear_mems_flags
+		endif
 		ref3.restore_me
 		ref3.go <tag0.old_p>
-		// if !<isempty <tag.mount>>
-		// 	ref4=<tag.mount>
-		// 	ref4.go=<ref2.p>
-		// 	ref3.mount <ref4>
-		// 	tag.mount=
-		// endif
 		tag.old_p=
 		if <local.single> && <dtag0.team>==<dlocal.team>
-			serv.f_dm_sysmessage <dlocal.list>,<def0.dm_winmsg_color>,<ref3.name> won the match!!
+			serv.f_dm_sysmessage <ref1>,<dlocal.list>,<def0.dm_winmsg_color>,<ref3.name> won the match!!
 			local.single=
 		endif
 	endif
 endif
 endfor
-serv.f_deathmatch_remove_list <dlocal.list>
+serv.list.dm_stone_<ref1>.16=0 // current list
+serv.f_deathmatch_remove_list <ref1>,<dlocal.list>
 
 [FUNCTION f_dm_timeout_start]
-local.list=<args>
-serv.f_dm_message <dlocal.list>,<def0.dm_msg_color>,Match will timeout in <def0.dm_extra_time> seconds.
+ref1=<argv[0]> // stone
+local.list=<argv[1]>
 serv.newitem=i_dm_timeout
+new.tag.stone=<ref1>
 new.tag.list=<dlocal.list>
-new.p=<def.dm_arena_center>
+new.p=<serv.list.dm_stone_<ref1>.2> // arena center
 new.timer=<def0.dm_extra_time>
+serv.f_dm_message <ref1>,<dlocal.list>,<def0.dm_msg_color>,Match will timeout in <def0.dm_extra_time> seconds.
 
 [FUNCTION f_dm_timeout]
-ref1=<serv.list.deathmatch_global.0>
-local.list=<args>
-if <ref1.dtag0.team_1>==<ref1.dtag0.team_2>
-	local.draw=<ref1.dtag0.team_1>
-elif <ref1.dtag0.team_1> > <ref1.dtag0.team_2>
+ref1=<argv[0]> // stone
+local.list=<argv[1]>
+local.equip=<serv.list.dm_stone_<ref1>.9> // use equip
+local.team_1=<serv.list.dm_stone_<ref1>.17> // team 1 count
+local.team_2=<serv.list.dm_stone_<ref1>.18> // team 1 count
+serv.f_dm_sysmessage <ref1>,<dlocal.list>,<def0.fail>,Battle Timeout.
+if <dlocal.team_1>==<dlocal.team_2>
+	local.draw=<dlocal.team_1>
+elif <dlocal.team_1> > <dlocal.team_2>
 	local.win_team=1
+	local.win_name=<serv.list.dm_stone_<ref1>.5>
 	local.lose_team=2
+	local.lose_name=<serv.list.dm_stone_<ref1>.7>
 else
 	local.win_team=2
+	local.win_name=<serv.list.dm_stone_<ref1>.7>
 	local.lose_team=1
+	local.lose_name=<serv.list.dm_stone_<ref1>.5>
 endif
-serv.f_dm_sysmessage <dlocal.list>,<def0.fail>,Battle Timeout.
 if <dlocal.draw>
-	serv.f_dm_sysmessage <dlocal.list>,<def0.dm_smsg_color>,The match ended in a draw [<dlocal.draw> - <dlocal.draw>].
+	serv.f_dm_sysmessage <ref1>,<dlocal.list>,<def0.dm_smsg_color>,The match ended in a draw [<dlocal.draw> - <dlocal.draw>].
 else
-	serv.f_dm_sysmessage <dlocal.list>,<def0.dm_smsg_color>,<def.dm_team_name_<dlocal.win_team>> team Wins [<ref1.dtag0.team_<dlocal.win_team>> - <ref1.dtag0.team_<dlocal.lose_team>>].
+	serv.f_dm_sysmessage <ref1>,<dlocal.list>,<def0.dm_smsg_color>,<dlocal.win_name> team Wins [<dlocal.team_<dlocal.win_team>> - <dlocal.team_<dlocal.lose_name>>].
 endif
 forinstances i_mem_deathmatch
-if <dtag0.list>==<dlocal.list> && <topobj.isevent.e_deathmatch_fight>
-	ref2=<topobj>
-	ref2.events=-e_deathmatch_fight
-	if <def0.dm_add_equipment>==1
-		ref2.f_remove_all_layers
-		ref2.f_restore_frombank
+if <dtag0.list>==<dlocal.list> && <tag0.stone>==<ref1>
+	if <topobj.isevent.e_deathmatch_fight>
+		ref2=<topobj>
+		ref2.events=-e_deathmatch_fight
+		if <dtag0.dm_maxskill>==1 // max skills
+			serv.f_dm_restore_skills <ref2>,<uid>
+		endif
+		if <dtag0.dm_equip>==1
+			ref2.f_remove_all_layers
+			ref2.f_restore_frombank
+		endif
+		if <eval <serv.list.dm_stone_<ref1>.19>>==1
+			ref2.clear_mems_flags
+		endif
+		ref2.restore_me
+		ref2.go <tag0.old_p> // not needed?
+		tag.old_p=
 	endif
-	ref2.restore_me
-	ref2.go <tag0.old_p>
-	// if !<isempty <tag.mount>>
-	// 	ref3=<tag.mount>
-	// 	ref3.go=<ref2.p>
-	// 	ref2.mount <ref3>
-	// 	tag.mount=
-	// endif
-	tag.old_p=
 endif
 endfor
-serv.f_deathmatch_remove_list <dlocal.list>
-serv.f_dm_check_queue <dlocal.list>
+serv.list.dm_stone_<ref1>.16=0 // current list
+serv.f_deathmatch_remove_list <ref1>,<dlocal.list>
+serv.f_dm_check_queue <ref1>
 
 [FUNCTION f_deathmatch_remove_list]
-ref1=<serv.list.deathmatch_global.0>
-local.list=<args>
-ref2=<strarg <serv.list.deathmatch_global.<dlocal.list>>>
+ref1=<argv[0]>	//stone
+local.stone_count=<qval <eval <serv.list.dm_stone_<ref1>_matches.count>> < 1?0:<eval <serv.list.dm_stone_<ref1>_matches.count>>>
+local.list=<argv[1]>
+ref2=<strarg <serv.list.dm_stone_<ref1>_matches.<dlocal.list>>>
+ref3=<ref2.topobj>
 forinstances i_mem_deathmatch
-if <dtag0.list>==<dlocal.list>
-	remove
-elif <dtag0.list> > <dlocal.list>
-	tag0.list --
+if <tag0.stone>==<ref1>
+	if <dtag0.list>==<dlocal.list>
+		remove
+	elif <dtag0.list> > <dlocal.list>
+		tag0.list --
+	endif
 endif
 endfor
-ref1.tag.mode=
-ref1.tag.list=
-ref1.tag.team_1=
-ref1.tag.team_2=
+if <dlocal.stone_count>==1
+	serv.list.dm_stone_<ref1>_matches.clear
+else
+	serv.list.dm_stone_<ref1>_matches.<dlocal.list>.remove
+endif
+serv.list.dm_stone_<ref1>.0=0  // mode
+serv.list.dm_stone_<ref1>.16=0 // current list
+serv.list.dm_stone_<ref1>.17=0 // ref1.tag.team_1
+serv.list.dm_stone_<ref1>.18=0 // ref1.tag.team_2
+serv.list.deathmatch_<ref3>.clear
 ref1.timer=-1
-serv.list.deathmatch_global.<dlocal.list>.remove
-serv.list.deathmatch_<ref2>.clear
 
 [FUNCTION f_dm_check_queue]
-local.count=<serv.list.deathmatch_queue.count>
-if <dlocal.count> > 0
-	local.list=<args>
+ref1=<args> // stone
+if !<isempty <serv.list.dm_stone_<ref1>.14>> && <serv.list.dm_stone_<ref1>.14>!=0
 	forinstances i_mem_deathmatch
-	if <timer> > 0
+	if <tag0.stone>==<ref1> && <timer> > 0
 		timer += <eval <def0.dm_queue_time>+5>
 	endif
 	endfor
-	ref1=<serv.list.deathmatch_queue.0> // i_mem_deathmatch from creator
-	serv.f_dm_message <dlocal.list>,<def0.dm_msg_color>,"Your deathmatch is ready to start."
-	serv.f_dm_sysmessage <dlocal.list>,<def0.dm_smsg_color>,"Your team has <def0.dm_queue_time> seconds to start the match."
-	ref1.timer=<def0.dm_queue_time>
-	serv.f_dm_queue_remove <ref1>
+	ref2=<strarg <serv.list.dm_stone_<ref1>.14>> // creator mem
+	ref2.timer=<def0.dm_queue_time>
+	serv.f_dm_message <ref1>,<ref2.dtag0.list>,<def0.dm_msg_color>,"Your deathmatch is ready to start."
+	serv.f_dm_sysmessage <ref1>,<ref2.dtag0.list>,<def0.dm_smsg_color>,"Your team has <def0.dm_queue_time> seconds to start the match."
+	serv.f_dm_resenddlg_list <ref1>,<ref2.dtag0.list>
+	serv.list.dm_stone_<ref1>.14=0
 endif
-
-[FUNCTION f_dm_queue_pos]
-if <serv.list.deathmatch_queue.findelem <args>> != -1
-	local.l=<eval <serv.list.deathmatch_queue.findelem <args>>+1>
-	return <dlocal.l>
-endif
-return 0
 
 [FUNCTION f_dm_isin_queue]
-if <serv.list.deathmatch_queue.findelem <args>> != -1
-	return 1
+ref1=<argv[0]> // stone
+if !<isempty <serv.list.dm_stone_<ref1>.14>> && <serv.list.dm_stone_<ref1>.14>!=0
+	ref2=<argv[1]> // mem
+	if <ref2>==<strarg <serv.list.dm_stone_<ref1>.14>>
+		return 1
+	endif
 endif
 return 0
 
-[FUNCTION f_dm_queue_remove]
-ref1=<args>
-if <serv.list.deathmatch_queue.findelem <ref1>> != -1
-	local.count=<serv.list.deathmatch_queue.count>
-	if <dlocal.count>==1
-		serv.list.deathmatch_queue.clear
-	else
-		local.n=<serv.list.deathmatch_queue.findelem <ref1>>
-		serv.list.deathmatch_queue.<dlocal.n>.remove
-	endif
+[FUNCTION f_dm_equip]
+ref1=<argv[0]> // stone
+ref2=<argv[1]> // player
+local.team=<argv[2]>
+local.can_mount=<argv[3]>
+local.team_1_color=<serv.list.dm_stone_<ref1>.6> // team 1 color
+local.team_2_color=<serv.list.dm_stone_<ref1>.8> // team 2 color
+local.mount=<serv.list.dm_stone_<ref1>.11>	// mount baseid
+
+for 1 <def0.dm_equip_item_total>
+serv.newitem=<strarg <def.dm_equip_item_<dlocal._for>>>,1,<ref2>,1
+if <new.type>==t_shield || <new.type>==t_clothing
+	new.color=<dlocal.team_<dlocal.team>_color>
+else
+	new.color=<streat <def.dm_equip_item_<dlocal._for>>>
+endif
+new.events=+t_dm_item
+endfor
+for 1 <def0.dm_pack_item_total>
+args=<def.dm_pack_item_<dlocal._for>>
+serv.newitem=<argv[0]>,<argv[1]>,<ref2.findlayer.21>
+new.events=+t_dm_item
+new.contp=<argv[2]>,<argv[3]>
+endfor
+if <local.can_mount>
+	serv.newnpc=<local.mount>
+	ref4=<new>
+	new.color=<dlocal.team_<dlocal.team>_color>
+	new.p=<ref2.p>
+	ref4.f_MakePetOf <ref2>
+	ref2.mount <ref4>
 endif
 
-
-
-
+[FUNCTION f_dm_addblocks]
+ref1=<args> // stone
+for n 3 4
+	serv.newitem=i_gold
+	new.attr=092
+	new.p=<serv.list.dm_stone_<ref1>.<dlocal.n>>
+	ref2=<new>
+	for 3 -2
+	serv.newitem=i_dm_fence1
+	new.tag.stone=<ref1>
+	new.p=<eval <ref2.p.x>+<dlocal._for>>,<eval <ref2.p.y>-3>,<ref2.p.z>,<ref2.map>
+	serv.newitem=i_dm_fence1
+	new.tag.stone=<ref1>
+	new.p=<eval <ref2.p.x>+<dlocal._for>>,<eval <ref2.p.y>+3>,<ref2.p.z>,<ref2.map>
+	serv.newitem=i_dm_fence2
+	new.tag.stone=<ref1>
+	new.p=<eval <ref2.p.x>+3>,<eval <ref2.p.y>+<dlocal._for>>,<ref2.p.z>,<ref2.map>
+	serv.newitem=i_dm_fence2
+	new.tag.stone=<ref1>
+	new.p=<eval <ref2.p.x>-3>,<eval <ref2.p.y>+<dlocal._for>>,<ref2.p.z>,<ref2.map>
+	endfor
+	ref2.remove
+endfor
 
 [FUNCTION f_dm_block_remove]
-ref1=<serv.list.deathmatch_global.0>
-ref1.tag.mode=3
+ref1=<args> // stone
 ref1.timer=<def0.dm_fight_time>
+serv.list.dm_stone_<ref1>.0=3 // mode
 forinstances i_dm_fence1
-remove
+if <tag0.stone>==<ref1>
+	remove
+endif
 endfor
 forinstances i_dm_fence2
-remove
-endfor
-
-[FUNCTION f_dm_addblocks]
-local.fence_blue_1 = "5273,1771,0,0"
-local.fence_blue_2 = "5272,1771,0,0"
-local.fence_blue_3 = "5271,1771,0,0"
-local.fence_blue_4 = "5270,1771,0,0"
-local.fence_blue_5 = "5269,1771,0,0"
-local.fence_blue_6 = "5268,1771,0,0"
-local.fence_blue_7 = "5267,1777,0,0"
-local.fence_blue_8 = "5267,1776,0,0"
-local.fence_blue_9 = "5267,1775,0,0"
-local.fence_blue_10 = "5267,1774,0,0"
-local.fence_blue_11 = "5267,1773,0,0"
-local.fence_blue_12 = "5267,1772,0,0"
-local.fence_red_1 = "5251,1755,0,0"
-local.fence_red_2 = "5250,1755,0,0"
-local.fence_red_3 = "5249,1755,0,0"
-local.fence_red_4 = "5248,1755,0,0"
-local.fence_red_5 = "5247,1755,0,0"
-local.fence_red_6 = "5246,1755,0,0"
-local.fence_red_7 = "5251,1755,0,0"
-local.fence_red_8 = "5251,1754,0,0"
-local.fence_red_9 = "5251,1753,0,0"
-local.fence_red_10 = "5251,1752,0,0"
-local.fence_red_11 = "5251,1751,0,0"
-local.fence_red_12 = "5251,1750,0,0"
-for 1 6
-serv.newitem=i_dm_fence1
-new.p=<local.fence_blue_<dlocal._for>>
-serv.newitem=i_dm_fence1
-new.p=<local.fence_red_<dlocal._for>>
-endfor
-for 7 12
-serv.newitem=i_dm_fence2
-new.p=<local.fence_blue_<dlocal._for>>
-serv.newitem=i_dm_fence2
-new.p=<local.fence_red_<dlocal._for>>
-endfor
-
-[FUNCTION f_fences_getloc] // f_fences_getloc red // use to get fences P
-local.team=<args>
-forinstances i_dm_fence1
-local.c ++
-serv.log local.fence_<local.team>_<dlocal.c> = "<p.x>,<p.y>,<p.z>,<map>"
-endfor
-forinstances i_dm_fence2
-local.c ++
-serv.log local.fence_<local.team>_<dlocal.c> = "<p.x>,<p.y>,<p.z>,<map>"
+if <tag0.stone>==<ref1>
+	remove
+endif
 endfor
 
 [FUNCTION f_dm_dialog]	// f_dm_dialog x,y,w,h
@@ -607,115 +857,125 @@ resizepic <argv[0]> <argv[1]> <def.dm_dlg_bg> <argv[2]> <argv[3]>
 gumppictiled <eval <argv[0]>+4> <eval <argv[1]>+6> <eval <argv[2]>-9> <eval <argv[3]>-10> 2624
 checkertrans <eval <argv[0]>+4> <eval <argv[1]>+6> <eval <argv[2]>-9> <eval <argv[3]>-10>
 
-[FUNCTION restore_me]// uncomment
-hits=<maxhits>
-mana=<maxmana>
-stam=<maxstam>
-cure 1
-spelleffect=s_dispel 4000
-update
-effect=3,i_fx_sparkle_2,10,16,10
-
-[FUNCTION f_remove_all_layers]
-for 1 25
-if !(<dlocal._for>==16 || <dlocal._for>==11)
-	if <findlayer.<dlocal._for>>
-		findlayer.<dlocal._for>.remove
-	endif
+[FUNCTION f_dm_save_skills]
+ref1=<argv[0]> // player
+ref2=<argv[1]> // player mem
+for 1 <def0.dm_skillmax_total>
+if <ref1.<def.dm_skillmax_<dlocal._for>>> < 100.0
+    ref2.tag.<def.dm_skillmax_<dlocal._for>>=<ref1.<def.dm_skillmax_<dlocal._for>>>
+    ref1.<def.dm_skillmax_<dlocal._for>>=100.0
 endif
 endfor
 
-[FUNCTION f_save_onbank]
-ref1=<src.findlayer.21>
-for 1 24
-if !(<dlocal._for>==21 || <dlocal._for>==16 || <dlocal._for>==11)
-	if <src.findlayer.<dlocal._for>>
-		src.findlayer.<dlocal._for>.tag.this.wasequipped=1
-		src.findlayer.<dlocal._for>.cont=<ref1>
-	endif
-endif
-endfor
-if <ref1.rescount>
-	src.tag.backpack=<ref1>
-	ref1.cont=<src.findlayer.29>
-	ref1.attr=090
-	serv.newitem=i_backpack,1,<src>,1
-	new.attr=014
-	src.update
-endif
-
-[FUNCTION f_restore_frombank]
-ref1=<uid>
-if !<isempty <ref1.tag.backpack>>
-	if <ref1.findlayer.21>
-		ref1.findlayer.21.remove
-	endif
-	ref2=<ref1.tag.backpack>
-	ref2.attr=014
-	ref2.cont=<ref1>
-	ref1.tag.backpack=
-	trysrc <ref1> f_equip_back
-endif
-
-[FUNCTION f_equip_back]
-forcont <src.findlayer.21> 10
-if !<isempty <tag.this.wasequipped>>
-	if <src.str> >= <reqstr>
-		equip
-	else
-		bounce
-	endif
-	tag.this.wasequipped=
+[FUNCTION f_dm_restore_skills]
+ref1=<argv[0]> // player
+ref2=<argv[1]> // player mem
+for 1 <def0.dm_skillmax_total>
+if !<isempty <ref2.tag.<def.dm_skillmax_<dlocal._for>>>>
+    ref1.<def.dm_skillmax_<dlocal._for>>=<ref2.tag.<def.dm_skillmax_<dlocal._for>>>
+    ref2.tag.<def.dm_skillmax_<dlocal._for>>=
 endif
 endfor
 
-[FUNCTION f_setbonus_skillmax]
-if <isweapon>
-	tag.skill=<serv.skill.<skill>.key>
-	tag.skill2=Tactics
-elif <type>==t_spellbook
-	tag.skill=Magery
-	tag.skill2=EvaluatingIntel
-else
-	tag.skill=<argv[0]>
-	if <argv[1]>
-		tag.skill2=<argv[1]>
-	endif
-endif
-events=+t_weapon_skillmax
+// [FUNCTION restore_me]// uncomment
+// hits=<maxhits>
+// mana=<maxmana>
+// stam=<maxstam>
+// cure 1
+// spelleffect=s_dispel 4000
+// update
+// effect=3,i_fx_sparkle_2,10,16,10
 
-[FUNCTION f_setbonus_armor_increase]
-if <isempty <tag.armor_increase>>
-	tag.armor_increase=<args>
-	events +t_armor_increase
-endif
+// [FUNCTION f_remove_all_layers]
+// for 1 25
+// if !(<dlocal._for>==16 || <dlocal._for>==11)
+// 	if <findlayer.<dlocal._for>>
+// 		findlayer.<dlocal._for>.remove
+// 	endif
+// endif
+// endfor
 
-[FUNCTION removeallmems]
-if <memoryfindtype.<args>>
-	while <memoryfindtype.<args>>
-	try memoryfindtype.<args>.remove
-	endwhile
-endif
+// [FUNCTION f_save_onbank]
+// ref1=<src.findlayer.21>
+// for 1 24
+// if !(<dlocal._for>==21 || <dlocal._for>==16 || <dlocal._for>==11)
+// 	if <src.findlayer.<dlocal._for>>
+// 		src.findlayer.<dlocal._for>.tag.this.wasequipped=1
+// 		src.findlayer.<dlocal._for>.cont=<ref1>
+// 	endif
+// endif
+// endfor
+// if <ref1.rescount>
+// 	src.tag.backpack=<ref1>
+// 	ref1.cont=<src.findlayer.29>
+// 	ref1.attr=090
+// 	serv.newitem=i_backpack,1,<src>,1
+// 	new.attr=014
+// 	src.update
+// endif
 
-[FUNCTION clear_mems_flags]
-removeallmems memory_fight
-removeallmems memory_irritatedby
-removeallmems memory_harmedby
-removeallmems memory_iaggressor
-removeallmems memory_sawcrime
-removeallmems memory_aggreived
-if <flags>&statf_incognito
-	flags &= ~statf_incognito
-endif
-if <flags>&statf_war
-	flags &= ~statf_war
-endif
-if <flags>&statf_invisible
-	flags &= ~statf_invisible
-endif
-if <flags>&statf_criminal
-	flags &= ~statf_criminal
-endif
+// [FUNCTION f_restore_frombank]
+// ref1=<uid>
+// if !<isempty <ref1.tag.backpack>>
+// 	if <ref1.findlayer.21>
+// 		ref1.findlayer.21.remove
+// 	endif
+// 	ref2=<ref1.tag.backpack>
+// 	ref2.attr=014
+// 	ref2.cont=<ref1>
+// 	ref1.tag.backpack=
+// 	trysrc <ref1> f_equip_back
+// endif
+
+// [FUNCTION f_equip_back]
+// forcont <src.findlayer.21> 10
+// if !<isempty <tag.this.wasequipped>>
+// 	if <src.str> >= <reqstr>
+// 		equip
+// 	else
+// 		bounce
+// 	endif
+// 	tag.this.wasequipped=
+// endif
+// endfor
+
+// [FUNCTION f_setbonus_armor_increase]
+// if <isempty <tag.armor_increase>>
+// 	tag.armor_increase=<args>
+// 	events +t_armor_increase
+// endif
+
+// [FUNCTION removeallmems]
+// if <memoryfindtype.<args>>
+// 	while <memoryfindtype.<args>>
+// 	try memoryfindtype.<args>.remove
+// 	endwhile
+// endif
+
+// [FUNCTION clear_mems_flags]
+// removeallmems memory_fight
+// removeallmems memory_irritatedby
+// removeallmems memory_harmedby
+// removeallmems memory_iaggressor
+// removeallmems memory_sawcrime
+// removeallmems memory_aggreived
+// if <flags>&statf_incognito
+// 	flags &= ~statf_incognito
+// endif
+// if <flags>&statf_war
+// 	flags &= ~statf_war
+// endif
+// if <flags>&statf_invisible
+// 	flags &= ~statf_invisible
+// endif
+// if <flags>&statf_criminal
+// 	flags &= ~statf_criminal
+// endif
+
+
+
+
+
 
 // [FUNCTION isdialogopen] // uncomment
 // for 0 <eval <dialoglist.count> - 1>

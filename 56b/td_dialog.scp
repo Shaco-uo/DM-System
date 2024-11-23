@@ -1,12 +1,12 @@
 [DIALOG d_deathmatch_main]
 300,200
 PAGE 0
-if <src.isevent.e_deathmatch_fight>
-	src.sysmessage @,,1 You cannot use this function while in a match.
+ref1=<src.ctag0.dm_stone>
+if !<ref1> || <src.isevent.e_deathmatch_fight>
 	return 1
 endif
 f_dlg_teamdm_sidebar
-f_dlg_deathmatch_<src.dctag0.deathmatch_page>
+f_dlg_deathmatch_<src.dctag0.deathmatch_page> <ref1>
 
 [DIALOG d_deathmatch_main BUTTON]
 ON=0
@@ -21,23 +21,45 @@ ON=0
 
 ON=1 10 // select list
 	src.dialogclose d_deathmatch_main
-	if <src.dctag0.deathmatch_page>==2
-		src.ctag.deathmatch_page=1
-		src.ctag.deathmatch_opt=
+	src.ctag.deathmatch_page=2
+	src.ctag.deathmatch_opt=<eval <argn1>-1>
+	sdialog d_deathmatch_main
+
+ON=20 // player use equip
+	src.dialogclose d_deathmatch_main
+	if <src.dctag0.dm_addequip>==1
+		src.ctag.dm_addequip=
 	else
-		src.ctag.deathmatch_page=2
-		src.ctag.deathmatch_opt=<argn1>
+		src.ctag.dm_addequip=1
 	endif
 	sdialog d_deathmatch_main
 
-ON=101 // create list
+ON=21 // player use max skills
+	src.dialogclose d_deathmatch_main
+	if <src.dctag0.dm_maxskill>==1
+		src.ctag.dm_maxskill=
+	else
+		src.ctag.dm_maxskill=1
+	endif
+	sdialog d_deathmatch_main
+
+ON=22 // player use mount
+	src.dialogclose d_deathmatch_main
+	if <src.dctag0.dm_addmount>==1
+		src.ctag.dm_addmount=
+	else
+		src.ctag.dm_addmount=1
+	endif
+	sdialog d_deathmatch_main
+
+ON=101 // goto create list menu
 	src.dialogclose d_deathmatch_main
 	src.ctag.match_amt=
 	src.ctag.deathmatch_page=
 	src.ctag.match_private=
 	sdialog d_deathmatch_main
 
-ON=102 // avalaible match list
+ON=102 // goto avalaible match list
 	src.dialogclose d_deathmatch_main
 	src.ctag.deathmatch_page=1
 	sdialog d_deathmatch_main
@@ -45,7 +67,7 @@ ON=102 // avalaible match list
 ON=103 // player amt+
 	src.dialogclose d_deathmatch_main
 	src.ctag0.match_amt ++
-	if <src.dctag0.match_amt> > 5
+	if <src.dctag0.match_amt> > <def0.dm_arena_max>
 		src.ctag.match_amt=1
 	endif
 	sdialog d_deathmatch_main
@@ -56,10 +78,10 @@ ON=104 // private/public
 		src.ctag.match_private=<R1000,9999>
 		src.sysmessage @<def0.dm_smsg_color>,,1 New match password set to <src.dctag0.match_private>.
 	else
-		if !<isnum <argtxt[1]>>
+		if !<isnum <argtxt[<dargn1>]>>
 			src.sysmessage @<def.fail>,,1 Invalid Number.
-		elif <dargtxt[1]>!=<src.dctag0.match_private>
-			src.ctag.match_private=<argtxt[1]>
+		elif <argtxt[<dargn1>]>!=<src.dctag0.match_private>
+			src.ctag.match_private=<argtxt[<dargn1>]>
 			src.sysmessage @<def0.dm_smsg_color>,,1 New match password set to <src.dctag0.match_private>.
 		else
 			src.ctag.match_private=
@@ -69,108 +91,309 @@ ON=104 // private/public
 
 ON=105 // create list
 	src.dialogclose d_deathmatch_main
-	ref1=<serv.list.deathmatch_global.0>
-	local.count=<eval <serv.list.deathmatch_global.count>-1>
+	ref1=<src.ctag0.dm_stone>
+	local.stone_count=<qval <eval <serv.list.dm_stone_<ref1>_matches.count>> < 1?0:<eval <serv.list.dm_stone_<ref1>_matches.count>>>
 	if <src.findid.i_mem_deathmatch>
 		src.sysmessage @<def.fail>,,1 You already have a deathmatch list
-		return 1
+	elif <dlocal.stone_count> >= <def0.dm_list_max> // list
+		src.sysmessage @<def.fail>,,1 The arena cannot add more lists.
+	elif !<isempty <serv.list.dm_stone_<ref1>.14>> && <serv.list.dm_stone_<ref1>.14>!=0 // queue
+		src.sysmessage @<def.fail>,,1 The arena already has a team queued.
+	else
+		// local.mode=<serv.list.dm_stone_<ref1>.0>
+		local.freemode=<serv.list.dm_stone_<ref1>.12>
+		serv.list.deathmatch_<src>.clear
+
+		src.newitem=i_mem_deathmatch
+		ref2=<new>
+		new.tag.list=<dlocal.stone_count>
+		new.tag.stone=<ref1>
+		new.tag.creator=<src>
+		new.timer=<def0.dm_list_duration>
+		new.equip <src>
+		if <dlocal.freemode>==1 // free mode
+			serv.list.dm_stone_<ref1>_matches.add=<ref2>,<src.dctag0.match_amt>,<src.dctag0.match_private>
+			ref2.tag.dm_equip=<src.dctag0.dm_addequip>
+			ref2.tag.dm_maxskill=<src.dctag0.dm_maxskill>
+			ref2.tag.dm_mount=<src.dctag0.dm_addmount>
+			src.sysmessage @<def0.dm_smsg_color>,,1 You have created a <src.dctag0.match_amt> vs <src.dctag0.match_amt> <qval <src.dctag0.match_private>==0?public:private [<src.dctag0.match_private>]> deathmatch list.
+			src.ctag.dm_addequip=
+			src.ctag.dm_addmount=
+			src.ctag.dm_maxskill=
+			src.ctag.match_amt=
+			src.ctag.match_private=
+		else
+			local.amt=<serv.list.dm_stone_<ref1>.11>
+			local.private=<serv.list.dm_stone_<ref1>.13>
+			serv.list.dm_stone_<ref1>_matches.add=<ref2>,<dlocal.amt>,<dlocal.private>
+			ref2.tag.dm_equip=<serv.list.dm_stone_<ref1>.9>
+			ref2.tag.dm_maxskill=<serv.list.dm_stone_<ref1>.10>
+			ref2.tag.dm_mount=<serv.list.dm_stone_<ref1>.15>
+			src.sysmessage @<def0.dm_smsg_color>,,1 You have created a <dlocal.amt> vs <dlocal.amt> <qval <dlocal.private>==0?public:private [<dlocal.private>]> deathmatch list.
+		endif
+		serv.list.deathmatch_<src>.add=<src>
 	endif
-	serv.list.deathmatch_<src>.clear
-	serv.list.deathmatch_<src>.add = <src>
-	serv.list.deathmatch_global.add = <src>,<src.dctag0.match_amt>,<src.dctag0.match_private>
-	src.newitem=i_mem_deathmatch
-	new.tag.list=<eval <dlocal.count>+1>
-	new.timer=<def0.dm_list_duration>
-	new.equip <src>
-	src.sysmessage @<def0.dm_smsg_color>,,1 You have created a <src.dctag0.match_amt> vs <src.dctag0.match_amt> deathmatch list.
-	src.ctag.deathmatch_page=1
-	src.ctag.match_amt=
-	src.ctag.match_private=
+	src.ctag.deathmatch_page=1 // created lists menu
 	sdialog d_deathmatch_main
 
 ON=106 // delete list
 	src.dialogclose d_deathmatch_main
+	ref1=<src.ctag0.dm_stone>
 	local.list=<src.findid.i_mem_deathmatch.dtag0.list>
-	serv.f_deathmatch_remove_list <dlocal.list>
-	serv.f_dm_check_queue <dlocal.list>
-	src.sysmessage @,,1 You deathmatch list has been cleared.
+	serv.f_deathmatch_remove_list <ref1>,<dlocal.list>
+	serv.f_dm_check_queue <ref1>
+	src.sysmessage @,,1 Your deathmatch list has been cleared.
 	src.ctag.deathmatch_page=1
-	src.timerf 0,dialog d_deathmatch_main
+	sdialog d_deathmatch_main
 
 ON=107 // join list
 	src.dialogclose d_deathmatch_main
-	ref1=<serv.list.deathmatch_global.0>
-	args=<serv.list.deathmatch_global.<src.dctag0.deathmatch_opt>>
-	ref2=<argv[0]> // player 1
+	ref1=<src.ctag0.dm_stone>
+	args=<serv.list.dm_stone_<ref1>_matches.<src.dctag0.deathmatch_opt>>
+	ref2=<argv[0]>
+	ref3=<ref2.topobj>  // creator
 	local.amt=<argv[1]>
 	local.max_amt=<argv[1]>*2
-	serv.list.deathmatch_<ref2>.add = <src>
+	serv.list.deathmatch_<ref3>.add=<src>
 	src.newitem=i_mem_deathmatch
+	new.tag.dm_equip=<ref2.dtag0.dm_equip>
+	new.tag.dm_mount=<ref2.dtag0.dm_mount>
+	new.tag.dm_maxskill=<ref2.dtag0.dm_maxskill>
 	new.tag.list=<src.dctag0.deathmatch_opt>
+	new.tag.stone=<ref1>
 	new.timer=-1
 	new.equip <src>
 	src.sysmessage @<def0.dm_smsg_color>,,1 You have joined a <dlocal.amt> vs <dlocal.amt> deathmatch list.
-	if <serv.list.deathmatch_<ref2>.count>==<dlocal.max_amt>
-		serv.f_dm_message <src.dctag0.deathmatch_opt>,<def0.dm_msg_color>,Deathmatch Ready
+	if <serv.list.deathmatch_<ref3>.count>==<dlocal.max_amt>
+		serv.f_dm_message <ref1>,<src.dctag0.deathmatch_opt>,<def0.dm_msg_color>,Deathmatch Ready
+		serv.f_dm_resenddlg_list <ref1>,<src.dctag0.deathmatch_opt>
+		if <def0.dm_notice_sound>!=0
+			serv.f_dm_notice_sound <ref1>,<src.dctag0.deathmatch_opt>
+		endif
 	endif
 	sdialog d_deathmatch_main
 
 ON=108 // leave list
 	src.dialogclose d_deathmatch_main
-	ref1=<src.findid.i_mem_deathmatch>
-	serv.f_deathmatch_remove_player <src>,<ref1.dtag0.list>
-	src.sysmessage @<def.fail>,,1 You leave the match list.
+	if <src.findid.i_mem_deathmatch>
+		ref1=<src.ctag0.dm_stone>
+		ref2=<src.findid.i_mem_deathmatch>
+		serv.f_deathmatch_remove_player <ref1>,<src>,<ref2.dtag0.list>
+		src.sysmessage @<def.fail>,,1 You left the match list.
+	endif
 	sdialog d_deathmatch_main
 
 ON=109 // start match
 	src.dialogclose d_deathmatch_main
-	ref1=<serv.list.deathmatch_global.0>
-	if <ref1.dtag0.mode>==0
-		serv.f_deathmatch_prestart <src.dctag0.deathmatch_opt>
+	ref1=<src.ctag0.dm_stone>
+	local.list=<src.dctag0.deathmatch_opt>
+	local.mode=<serv.list.dm_stone_<ref1>.0>
+	if <dlocal.mode>==0
+		serv.f_deathmatch_prestart <ref1>,<dlocal.list>
 		src.ctag.deathmatch_opt=
 	endif
+
 ON=110 // add to queue
 	src.dialogclose d_deathmatch_main
-	ref1=<serv.list.deathmatch_global.0>
-	if <ref1.dtag0.mode> >= 1
-		ref2=<strarg <serv.list.deathmatch_global.<src.dctag0.deathmatch_opt>>>
-		ref3=<ref2.findid.i_mem_deathmatch>
-		ref3.timer=-1
-		serv.list.deathmatch_queue.add <ref3>
-		serv.f_dm_sysmessage <dtag0.list>,<def0.dm_smsg_color>,Your deathmatch list has been placed on queue (<serv.list.deathmatch_queue.count>).
+	ref1=<src.ctag0.dm_stone>
+	if !<isempty <serv.list.dm_stone_<ref1>.14>> && <serv.list.dm_stone_<ref1>.14>!=0 // queue
+		src.sysmessage @<def.fail>,,1 The arena already has a team queued.
+	else
+		local.mode=<serv.list.dm_stone_<ref1>.0>
+		local.stone_count=<qval <eval <serv.list.dm_stone_<ref1>_matches.count>> < 1?0:<eval <serv.list.dm_stone_<ref1>_matches.count>>>
+		local.list=<src.dctag0.deathmatch_opt>
+		if <dlocal.mode> >= 1
+			ref2=<strarg <serv.list.dm_stone_<ref1>_matches.<dlocal.list>>>
+			ref2.timer=-1
+			if <dlocal.freemode>==1 // free mode
+				serv.list.dm_stone_<ref1>.14=<ref2>,<src.dctag0.match_amt>,<src.dctag0.match_private>
+				src.ctag.match_amt=
+				src.ctag.match_private=
+			else
+				local.amt=<serv.list.dm_stone_<ref1>.11>
+				local.private=<serv.list.dm_stone_<ref1>.13>
+				serv.list.dm_stone_<ref1>.14=<ref2>,<dlocal.amt>,<dlocal.private>
+			endif
+			serv.f_dm_sysmessage <ref1>,<dtag0.list>,<def0.dm_smsg_color>,Your deathmatch list has been placed on queue.
+		endif
 	endif
+	sdialog d_deathmatch_main
 
 ON=111 // join private list
 	src.dialogclose d_deathmatch_main
-	ref1=<serv.list.deathmatch_global.0>
-	args=<serv.list.deathmatch_global.<src.dctag0.deathmatch_opt>>
-	ref2=<argv[0]> // player 1
+	ref1=<src.ctag0.dm_stone>
+	args=<serv.list.dm_stone_<ref1>_matches.<src.dctag0.deathmatch_opt>>
+	ref2=<argv[0]>
+	ref3=<ref2.topobj> // creator
 	local.amt=<argv[1]>
 	local.max_amt=<argv[1]>*2
 	local.private=<argv[2]>
 	if <isempty <argtxt[2]>> || !<isnum <argtxt[2]>> || <dargtxt[2]>!=<dlocal.private>
 		src.sysmessage @<def.fail>,,1 Invalid Code.
 	else
-		serv.list.deathmatch_<ref2>.add = <src>
+		serv.list.deathmatch_<ref3>.add=<src>
 		src.newitem=i_mem_deathmatch
+		new.tag.stone=<ref1>
 		new.tag.list=<src.dctag0.deathmatch_opt>
+		new.tag.dm_equip=<ref2.dtag0.dm_equip>
+		new.tag.dm_mount=<ref2.dtag0.dm_mount>
+		new.tag.dm_maxskill=<ref2.dtag0.dm_maxskill>
 		new.timer=-1
 		new.equip <src>
 		src.sysmessage @<def0.dm_smsg_color>,,1 You have joined a <dlocal.amt> vs <dlocal.amt> deathmatch list.
-		if <serv.list.deathmatch_<ref2>.count>==<dlocal.max_amt>
-			serv.f_dm_message <src.dctag0.deathmatch_opt>,<def0.dm_msg_color>,Deathmatch Ready
+		if <serv.list.deathmatch_<ref3>.count>==<dlocal.max_amt>
+			serv.f_dm_message <ref1>,<src.dctag0.deathmatch_opt>,<def0.dm_msg_color>,Deathmatch Ready
+			serv.f_dm_resenddlg_list <ref1>,<src.dctag0.deathmatch_opt>
+			if <def0.dm_notice_sound>!=0
+				serv.f_dm_notice_sound <ref1>,<src.dctag0.deathmatch_opt>
+			endif
 		endif
 	endif
 	sdialog d_deathmatch_main
 
-ON=203 220 // reorder teams
+ON=202 220 // reorder teams
 	src.dialogclose d_deathmatch_main
-	local.pos=<eval <argn1>-201>
-	ref2=<strarg <serv.list.deathmatch_global.<src.dctag0.deathmatch_opt>>>
-	ref3=<serv.list.deathmatch_<ref2>.<dlocal.pos>> // selected player
-	ref4=<serv.list.deathmatch_<ref2>.<eval <dlocal.pos>-1>>
-	serv.list.deathmatch_<ref2>.<dlocal.pos> = <ref4>
-	serv.list.deathmatch_<ref2>.<eval <dlocal.pos>-1> = <ref3>
+	ref1=<src.ctag0.dm_stone>
+	local.pos=<eval <argn1>-200>
+	ref2=<strarg <serv.list.dm_stone_<ref1>_matches.<src.dctag0.deathmatch_opt>>> // creator
+	ref3=<ref2.topobj>
+	ref4=<serv.list.deathmatch_<ref3>.<dlocal.pos>> // selected player
+	ref5=<serv.list.deathmatch_<ref3>.<eval <dlocal.pos>-1>>
+	serv.list.deathmatch_<ref3>.<dlocal.pos>=<ref5>
+	serv.list.deathmatch_<ref3>.<eval <dlocal.pos>-1>=<ref4>
+	sdialog d_deathmatch_main
+
+// GM MENU
+ON=112 // gm Menu sidebar
+	src.dialogclose d_deathmatch_main
+	src.ctag.deathmatch_page=3
+	sdialog d_deathmatch_main
+
+ON=301 315
+	src.dialogclose d_deathmatch_main
+	if !<src.isgm>
+		return 1
+	endif
+	ref1=<src.ctag0.dm_stone>
+	if <dargn1>==301
+		ref1.name=<argtxt[<dargn1>]>
+		src.sysmessage @60,,1 Match stone name set to <argtxt[<dargn1>]>.
+		sdialog d_deathmatch_main
+	elif <dargn1>==302
+		serv.list.dm_stone_<ref1>.2=<argtxt[<dargn1>]>
+		src.sysmessage @60,,1 Match center location set to <argtxt[<dargn1>]>.
+		sdialog d_deathmatch_main
+	elif <dargn1>==303
+		serv.list.dm_stone_<ref1>.3=<argtxt[<dargn1>]>
+		src.sysmessage @60,,1 Match team #1 location set to <argtxt[<dargn1>]>.
+		sdialog d_deathmatch_main
+	elif <dargn1>==304
+		serv.list.dm_stone_<ref1>.4=<argtxt[<dargn1>]>
+		src.sysmessage @60,,1 Match team #2 location set to <argtxt[<dargn1>]>.
+		sdialog d_deathmatch_main
+	elif <dargn1>==305
+		local.players=<serv.list.dm_stone_<ref1>.1>
+		if <dlocal.players> >= <def0.dm_arena_max>
+			local.players=1
+		else
+			local.players ++
+		endif
+		serv.list.dm_stone_<ref1>.1=<dlocal.players>
+		src.sysmessage @60,,1 Match max players set to <dlocal.players>.
+		sdialog d_deathmatch_main
+	elif <dargn1>==306
+		serv.list.dm_stone_<ref1>.5=<argtxt[<dargn1>]>
+		src.sysmessage @60,,1 Match team #1 name set to <argtxt[<dargn1>]>.
+		sdialog d_deathmatch_main
+	elif <dargn1>==307
+		serv.list.dm_stone_<ref1>.6=<argtxt[<dargn1>]>
+		src.sysmessage @60,,1 Match team #1 color set to <argtxt[<dargn1>]>.
+		sdialog d_deathmatch_main
+	elif <dargn1>==308
+		serv.list.dm_stone_<ref1>.7=<argtxt[<dargn1>]>
+		src.sysmessage @60,,1 Match team #2 name set to <argtxt[<dargn1>]>.
+		sdialog d_deathmatch_main
+	elif <dargn1>==309
+		serv.list.dm_stone_<ref1>.8=<argtxt[<dargn1>]>
+		src.sysmessage @60,,1 Match team #2 color set to <argtxt[<dargn1>]>.
+		sdialog d_deathmatch_main
+	elif <dargn1>==310
+		if <serv.list.dm_stone_<ref1>.9>==0
+			serv.list.dm_stone_<ref1>.9=1
+			src.sysmessage @60,,1 Match equipment enabled.
+		else
+			serv.list.dm_stone_<ref1>.9=0
+			src.sysmessage @<def.fail>,,1 Match equipment disabled.
+		endif
+		sdialog d_deathmatch_main
+	elif <dargn1>==311
+		if <serv.list.dm_stone_<ref1>.10>==0
+			serv.list.dm_stone_<ref1>.10=1
+			serv.list.dm_stone_<ref1>.11=<def.dm_mount_id>
+			src.sysmessage @,,1 Match mount enabled.
+		else
+			serv.list.dm_stone_<ref1>.10=0
+			serv.list.dm_stone_<ref1>.11=0
+			src.sysmessage @<def.fail>,,1 Match mount disabled.
+		endif
+		sdialog d_deathmatch_main
+	elif <dargn1>==312
+		if <isempty <resdef.<argtxt[<dargn1>]>>>
+			src.sysmessage @<def.fail>,,1 Invalid ID.
+		else
+			local.mount=<serv.list.dm_stone_<ref1>.11>
+			if <argtxt[<dargn1>]>!=<local.mount>
+				serv.list.dm_stone_<ref1>.11=<argtxt[<dargn1>]>
+				src.sysmessage @60,,1 Match mount set to <serv.chardef.<argtxt[<dargn1>]>.name>.
+			endif
+		endif
+		sdialog d_deathmatch_main
+	elif <dargn1>==313
+		local.freemode=<serv.list.dm_stone_<ref1>.12>
+		if <dlocal.freemode>==1
+			local.freemode=0
+			src.sysmessage @<def.fail>,,1 Match free mode disabled.
+		else
+			local.freemode=1
+			src.sysmessage @60,,1 Match free mode enabled.
+		endif
+		serv.list.dm_stone_<ref1>.12=<dlocal.freemode>
+		sdialog d_deathmatch_main
+	elif <dargn1>==314
+		local.maxskills=<serv.list.dm_stone_<ref1>.15>
+		if <dlocal.maxskills>==1
+			local.maxskills=0
+			src.sysmessage @<def.fail>,,1 Match maxskills disabled.
+		else
+			local.maxskills=1
+			src.sysmessage @60,,1 Match maxskills enabled.
+		endif
+		serv.list.dm_stone_<ref1>.15=<dlocal.maxskills>
+		sdialog d_deathmatch_main
+	else // 315
+		if <eval <serv.list.dm_stone_<ref1>.19>>==1
+			serv.list.dm_stone_<ref1>.19=0
+			src.sysmessage @<def.fail>,,1 Match clearmem disabled.
+		else
+			serv.list.dm_stone_<ref1>.19=1
+			src.sysmessage @60,,1 Match clearmem enabled.
+		endif
+		sdialog d_deathmatch_main
+	endif
+
+ON=332 334 // set <src.p> as location
+	src.dialogclose d_deathmatch_main
+	ref1=<src.ctag0.dm_stone>
+	local.opt=<eval <argn1>-330>
+	serv.list.dm_stone_<ref1>.<dlocal.opt>="<src.p.x>,<src.p.y>,<src.p.z>,<src.map>"
+	if <dlocal.opt>==2
+		local.loc=center
+	elif <dlocal.opt>==3
+		local.loc=team #1
+	elif <dlocal.opt>==4
+		local.loc=team #2
+	endif
+	src.sysmessage @60,,1 Match <local.loc> location set to <serv.list.dm_stone_<ref1>.<dlocal.opt>>.
 	sdialog d_deathmatch_main
 
 [EOF]

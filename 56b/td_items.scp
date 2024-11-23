@@ -8,39 +8,65 @@ SUBSECTION=Event DM
 DESCRIPTION=DM Stone
 ON=@Create
 	attr=010
-	timerf 0,f_deathmatch_init
+	timerf 0,f_deathmatch_init <uid>
 ON=@Dclick
-	src.deathmatch
+	src.dialogclose d_deathmatch_main
+	if <isempty <src.ctag.deathmatch_dlg>>
+		src.ctag.deathmatch_page=1
+	else
+		src.ctag.deathmatch_page=
+	endif
+	src.ctag.deathmatch_opt=
+	src.ctag.deathmatch_dlg=
+	src.ctag.dm_stone=<uid>
+	sdialog d_deathmatch_main
 	return 1
+ON=@Destroy
+	ref1=<uid>
+	forinstances i_mem_deathmatch
+	if !<isempty <tag.stone>> && <tag.stone>==<ref1>
+		if !<isempty <tag.creator>>
+			ref2=<tag0.creator>
+			serv.list.deathmatch_<ref2>.clear
+		endif
+		remove
+	endif
+	endfor
+	serv.list.dm_stone_<ref1>_matches.clear
+	serv.list.dm_stone_<ref1>.clear
+
 ON=@Timer
-	if <dtag0.mode>==1
+	local.mode=<serv.list.dm_stone_<uid>.0>
+	local.list=<serv.list.dm_stone_<uid>.16> // current
+	if <dlocal.mode>==1
 		if <more1>
 			if <dmore1>==5
-				serv.f_dm_message <dtag0.list>,<def0.dm_msg_color>,Going to arena in <dmore1> seconds
+				serv.f_dm_message <uid>,<dlocal.list>,<def0.dm_msg_color>,Going to arena in <dmore1> seconds
 			endif
 			more1 --
 			timer=1
 			return 1
 		else
-			serv.f_dm_addblocks
-			serv.f_dm_gotomatch <dtag0.list>
+			serv.f_dm_addblocks <uid>
+			serv.f_dm_gotomatch <uid>,<dlocal.list>
 		endif
-	elif <dtag0.mode>==2
+	elif <dlocal.mode>==2
 		if <more1>
 			if <dmore1>==<def0.dm_countdown>
-				serv.f_dm_message <dtag0.list>,<def0.dm_msg_color>,"Battle starts in <dmore1> seconds, prepare for combat"
+				serv.f_dm_sysmessage <uid>,<dlocal.list>,<def0.dm_smsg_color>,"Battle starts in <dmore1> seconds, prepare for combat."
+				serv.f_dm_message <uid>,<dlocal.list>,976,Prepare for combat!!
 			elif <dmore1> <= 5
-				serv.f_dm_message <dtag0.list>,976,<dmore1>
+				serv.f_dm_message <uid>,<dlocal.list>,976,<dmore1>
 			endif
 			more1 --
 			timer=1
 			return 1
 		else
-			serv.f_dm_block_remove
-			serv.f_dm_message <dtag0.list>,<def0.dm_winmsg_color>,GO!!
+			serv.f_dm_block_remove <uid>
+			serv.f_dm_message <uid>,<dlocal.list>,<def0.dm_winmsg_color>,GO!!
 		endif
-	elif <dtag0.mode>==3
-		serv.f_dm_timeout_start <dtag0.list>
+	elif <dlocal.mode>==3
+		serv.f_dm_timeout_start <uid>,<dlocal.list>
 		timer=-1
 	else
 		timer=-1
@@ -48,6 +74,8 @@ ON=@Timer
 		// tag.list=
 	endif
 	return 1
+
+
 
 [ITEMDEF i_dm_timeout]
 DEFNAME=i_dm_timeout
@@ -57,7 +85,7 @@ TYPE=t_script
 ON=@Create
 	attr=090
 ON=@Timer
-	serv.f_dm_timeout <dtag0.list>
+	serv.f_dm_timeout <tag0.stone>,<dtag0.list>
 	remove
 	return 1
 
@@ -90,9 +118,15 @@ ON=@UnEquip
 	src.events=-e_deathmatch_create
 	if <src.isevent.e_deathmatch_fight>
 		src.events=-e_deathmatch_fight
-		if <def0.dm_add_equipment>==1
+		if <dtag0.dm_maxskill>==1 // max skills
+			serv.f_dm_restore_skills <src>,<uid>
+		endif
+		if <dtag0.dm_equip>==1
 			src.f_remove_all_layers
 			src.f_restore_frombank
+		endif
+		if <eval <serv.list.dm_stone_<ref1>.19>>==1
+			src.clear_mems_flags
 		endif
 		src.restore_me
 	endif
@@ -106,29 +140,22 @@ ON=@UnEquip
 		src.go=<tag.old_p>
 		tag.old_p=
 	endif
-ON=@Timer
-	ref1=<serv.list.deathmatch_global.0>
-	args=<serv.list.deathmatch_global.<dtag0.list>>
-	ref2=<argv[0]>
-	local.max_amt=<eval <argv[1]>*2>
+	if !<isempty <tag.creator>>
+		serv.list.deathmatch_<src>.clear
+	endif
 
-	if <serv.list.deathmatch_<ref2>.count>==<dlocal.max_amt>
-		if <ref1.dtag0.mode>==0
-			local.fail=1
-		else
-			timer=-1
-			serv.list.deathmatch_queue.add <uid>
-			serv.f_dm_sysmessage <dtag0.list>,<def0.dm_smsg_color>,Your deathmatch list has been placed on queue (<serv.list.deathmatch_queue.count>).
+ON=@Timer
+	ref1=<tag0.stone> // stone
+	ref2=<topobj>
+	if <ref2.isonline>
+		ref2.sysmessage @<def.fail>,,1 Your deathmatch has been removed from the global list.
+		if <ref2.isdialogopen.d_deathmatch_main> && <ref2.ctag0.dm_stone>==<ref1>
+			ref2.ctag.deathmatch_page=
+			ref2.ctag.deathmatch_opt=
+			trysrc <ref2> dialogclose d_deathmatch_main
 		endif
-	else
-		local.fail=1
 	endif
-	if <local.fail>
-		if <topobj.isonline>
-			topobj.sysmessage @<def.fail>,,1 Your deathmatch has been removed from the global list.
-		endif
-		serv.f_deathmatch_remove_list <dtag0.list>
-	endif
+	serv.f_deathmatch_remove_list <ref1>,<dtag0.list>
 	return 1
 
 [ITEMDEF i_spellbook_dm]
@@ -136,18 +163,18 @@ DEFNAME=i_spellbook_dm
 ID=0efa
 NAME=Spellbook
 TYPE=t_spellbook
-WEIGHT=1.0
+WEIGHT=3.0
 LAYER=1
-TEVENTS=t_dm_item
+TEVENTS=ei_equipitem,ei_custom_tooltip,t_dm_item
+tag.itemlevel=4
 CATEGORY=Custom
 SUBSECTION=Event DM
 DESCRIPTION=DM Spellbook
 ON=@Create
 	MORE1=0772b4ffd
 	MORE2=0740738
-	f_setbonus_skillmax
 ON=@Dclick
-	if !<src.weapon.isvalid> || <src.weapon>!=<uid>
+	if !<src.weapon> || <src.weapon>!=<uid>
 		equip
 	endif
 
@@ -157,16 +184,18 @@ ID=i_bow
 NAME=Combat Bow
 WEIGHT=1.0
 VALUE=1
-DAM=16,45
+DAM=16,55
 SPEED=45
 SKILL=Archery
-TEVENTS=t_dm_item
+TEVENTS=ei_equipitem,ei_custom_tooltip,t_dm_item
+tag.itemlevel=4
 TDATA3=i_arrow
 TDATA4=i_arrow_x
 CATEGORY=Custom
 SUBSECTION=Event DM
 DESCRIPTION=DM Bow
 ON=@Create
+	COLOR=0
 	hitpoints=50
 	f_setbonus_skillmax
 
@@ -176,16 +205,17 @@ ID=i_sword_viking
 NAME=Combat Sword
 WEIGHT=1.0
 VALUE=1
-DAM=28,36
+DAM=28,46
 SPEED=50
 SKILL=Swordsmanship
-TEVENTS=t_dm_item
+TEVENTS=ei_equipitem,ei_custom_tooltip,t_dm_item
+tag.itemlevel=4
 CATEGORY=Custom
 SUBSECTION=Event DM
 DESCRIPTION=DM Sword
 ON=@Create
+	COLOR=0
 	hitpoints=50
-	f_setbonus_skillmax
 
 [ITEMDEF i_halberd_dm]
 DEFNAME=i_halberd_dm
@@ -193,16 +223,17 @@ ID=i_halberd
 NAME=Combat Halberd
 WEIGHT=1.0
 VALUE=1
-DAM=34,44
+DAM=34,54
 SPEED=39
 SKILL=Swordsmanship
-TEVENTS=t_dm_item
+TEVENTS=ei_equipitem,ei_custom_tooltip,t_dm_item
+tag.itemlevel=4
 CATEGORY=Custom
 SUBSECTION=Event DM
 DESCRIPTION=DM Halberd
 ON=@Create
+	COLOR=0
 	hitpoints=50
-	f_setbonus_skillmax
 
 [ITEMDEF i_war_fork_dm]
 DEFNAME=i_war_fork_dm
@@ -210,16 +241,17 @@ ID=i_war_fork
 NAME=Combat Fork
 WEIGHT=1.0
 VALUE=1
-DAM=28,36
+DAM=28,46
 SPEED=50
 SKILL=Fencing
-TEVENTS=t_dm_item
+TEVENTS=ei_equipitem,ei_custom_tooltip,t_dm_item
+tag.itemlevel=4
 CATEGORY=Custom
 SUBSECTION=Event DM
 DESCRIPTION=DM Fork
 ON=@Create
+	COLOR=0
 	hitpoints=50
-	f_setbonus_skillmax
 
 [ITEMDEF i_mace_war_dm]
 DEFNAME=i_mace_war_dm
@@ -227,16 +259,17 @@ ID=i_mace_war
 NAME=Combat Mace
 WEIGHT=1.0
 VALUE=1
-DAM=28,36
+DAM=28,46
 SPEED=50
 SKILL=MaceFighting
-TEVENTS=t_dm_item
+TEVENTS=ei_equipitem,ei_custom_tooltip,t_dm_item
+tag.itemlevel=4
 CATEGORY=Custom
 SUBSECTION=Event DM
 DESCRIPTION=DM Mace
 ON=@Create
+	COLOR=0
 	hitpoints=50
-	f_setbonus_skillmax
 
 [ITEMDEF i_shield_dm]
 DEFNAME=i_shield_dm
@@ -249,7 +282,8 @@ WEIGHT=1.0
 REQSTR=45
 RESOURCES=14 i_ingot_iron
 SKILLMAKE=Blacksmithing 10.0,Armslore 10.0
-TEVENTS=t_dm_item
+TEVENTS=ei_equipitem,ei_custom_tooltip,t_dm_item
+tag.itemlevel=4
 CATEGORY=Custom
 SUBSECTION=Event DM
 DESCRIPTION=DM Shield
@@ -296,22 +330,5 @@ ITEM=i_reag_spider_silk,100
 events=+t_dm_item
 ITEM=i_reag_sulfur_ash,100
 events=+t_dm_item
-
-[CHARDEF c_horse_dm]
-DEFNAME=c_horse_dm
-ID=0e2  // gray horse
-NAME=Ethereal Steed
-ICON=i_ethereal_horse
-SOUND=snd_animals_horse1
-CAN=mt_walk|mt_run|mt_nonhum
-DAM=1,2
-ARMOR=1
-BLOODCOLOR=-1
-FOLLOWERSLOTS=1
-tag.ethereal=1 // this enables removing at dismount
-ON=@Create
-	NPC=brain_animal
-	COLOR=078ff
-	STR=100
 
 [EOF]

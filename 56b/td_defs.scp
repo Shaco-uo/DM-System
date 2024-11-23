@@ -3,21 +3,45 @@ dm_list_duration	1800 // 30 min
 dm_wait_time		10	 // after start match button pressed
 dm_fight_time		480  // 8 min fight max duration. will add dm_extra_time after
 dm_queue_time		60  // will add to mem timers and place queued 1st
-dm_countdown		30	// arrived at arena, walls blocking, prepare for combat
-dm_extra_time		30	// time to finish/abot battle
+dm_countdown		30	// arrived at arena, walls blocking,  prepare for combat
+dm_extra_time		10 //30	// time to finish/abot battle
+dm_notice_sound		1461 // quest complete sound
+dm_list_max			10
+dm_arena_max		5
+dm_clear_mems		1 // use clear_mems_flags function
 
-dm_arena_p1			5272,1776,0,0	// S corner
-dm_arena_p2			5247,1751,0,0	// N corner
+// default stone values
+dm_mount_id			c_llama
+dm_mount_zone		5249,1800,0,0	// black map area, mounts will wait here
 dm_arena_center		5261,1764,0,0
-dm_mount_zone		5249,1800,0,0	// Black Area, mounts will wait here
-
+dm_arena_p1			5270,1774,0,0	// S corner
+dm_arena_p2			5249,1753,0,0	// N corner
 dm_team_name_1		Blue
 dm_team_name_2		Red
-dm_team_color_1		05e // blue
-dm_team_color_2		08a // red
-dm_add_equipment	1
-dm_add_mount		1
-dm_mount_id			c_llama
+dm_team_color_1		0cc // blue 07a0
+dm_team_color_2		08a // red 079c
+
+dm_player_noequip		0 // disable this button from player creation menu // override stone settings
+dm_player_nomount		0 // disable this button from player creation menu // override stone settings
+dm_player_nomaxskill	0 // disable this button from player creation menu // override stone settings
+
+dm_smsg_color 		60 // sysmessage "chat" default color
+dm_msg_color		43 // overhead system messages
+dm_chatmsg_color	70
+dm_winmsg_color		55
+
+dm_skillmax_total	11
+dm_skillmax_1		Magery
+dm_skillmax_2		EvaluatingIntel
+dm_skillmax_3		Tactics
+dm_skillmax_4		Wrestling
+dm_skillmax_5		MaceFighting
+dm_skillmax_6		Fencing
+dm_skillmax_7		Swordsmanship
+dm_skillmax_8		Archery
+dm_skillmax_9		Parrying
+dm_skillmax_10		Healing
+dm_skillmax_11		Anatomy
 
 dm_equip_item_total	8
 dm_equip_item_1		i_platemail_leggings,0455 // baseid,color
@@ -38,16 +62,9 @@ dm_pack_item_5		i_potion_restore_great,10,20,160
 dm_pack_item_6		i_potion_manatotal,10,60,160
 dm_pack_item_7		i_arrow,100,100,160
 
-// dm_cooldown			30	//s after team_dm
-// dm_spectator_cd		60	//s after leaving spectator mode
-
 empty_cliloc		1065706 // ~1_NOTHING~
 empty_cliloc2		1070722 // ~1_NOTHING~
-dm_tooltips			0		// 0 disables // broken
-dm_smsg_color 		60 // sysmessage "chat" default color
-dm_msg_color		43 // overhead system messages
-dm_chatmsg_color	70
-dm_winmsg_color		55
+dm_tooltips			0		// 0 disables
 dm_dlg_bg			9200
 bfont_dm_title		<basefont color="#ffa500">  // orange
 bfont_dm_text1		<basefont color="#ffffff">  // white
@@ -55,13 +72,5 @@ bfont_dm_text2		<basefont color="#ffff99">  // light yellow
 bfont_dm_text3		<basefont color="#d3d3d3">  // lgray
 bfont_dm_red		<basefont color="#ff3333">  // light red
 bfont_dm_gray		<basefont color="#808080">  // gray
-
-// [AREADEF a_dungeon_16]
-// FLAGS=region_flag_nobuilding|region_flag_insta_logout|region_antimagic_recall_in|region_antimagic_gate
-// EVENTS=r_default,r_deathmatch_arena
-// NAME=Death Match Arena
-// GROUP=Custom
-// P=5268,1755,0,0
-// RECT=5244,1748,5276,1780,0
 
 [EOF]
